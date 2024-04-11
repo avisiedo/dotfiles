@@ -1,0 +1,89 @@
+# This is Git's per-user configuration file.
+#
+# Learning resources
+# https://learngitbranching.js.org/
+# https://www.youtube.com/watch?v=aolI_Rz0ZqY
+# https://www.youtube.com/watch?v=Md44rcw13k4
+# https://git-scm.com/book/en/v2
+[user]
+# Please adapt and uncomment the following lines:
+	signingkey = 478B0FC61E45433A1850CD5EDD01B6FC13349AE7!
+	name = Alejandro Visiedo
+	email = avisiedo@redhat.com
+[commit]
+	gpgsign = true
+[apply]
+	whitespace = strip
+[color]
+	ui = auto
+[merge]
+	tool = meld
+[commit]
+    verbose = true
+
+[alias]
+    a = apply --index
+    ac = "!f() { curl $@ | git a; }; f"
+    ai = add -i
+    ap = add -p
+    addrb = filter-branch -f --msg-filter ~/bin/git-add-reviewed-by HEAD~1..HEAD
+    addrbr = filter-branch -f --msg-filter ~/bin/git-add-reviewed-by
+    di = diff -p --stat
+    dc = diff -p --stat --cached
+    dh = diff HEAD -p --stat
+    dk = !GIT_EXTERNAL_DIFF=git-kdiff git --no-pager diff
+    ds = diff --stat
+    dt = diff-tree --stat --summary --find-copies-harder
+    cds = diff --cached --stat
+    hds = diff HEAD --stat
+    ci = commit -v
+    co = checkout
+    br = branch
+    ru = remote update
+    st = status
+    stat = status
+    shs = show -p --stat
+    sh = show -p --stat --pretty=fuller
+    l = log
+    lo = log --pretty=oneline
+    lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --
+    rlog = log --reverse -p --stat
+    graph = log --all --decorate --oneline --graph
+    ami3 = am -i -3
+    am3 = am -3
+    pr = pull --rebase
+    r = show -p --stat -U25
+    arcdiff = rebase -i --exec 'arc diff HEAD^'
+    rba = rebase --abort
+    rbc = rebase --continue
+    rbi = rebase -i
+    rbs = rebase --skip
+    rbt = rebase --edit-todo
+    wc = whatchanged -p --stat
+    wcy = whatchanged -p --stat --since='yesterday'
+    wcw = whatchanged -p --stat --since='1 weeks ago'
+    wcf = whatchanged -p --stat --pretty=fuller
+    wcyf = whatchanged -p --stat --since='yesterday' --pretty=fuller
+    wcwf = whatchanged -p --stat --since='1 weeks ago' --pretty=fuller
+    wcs = whatchanged --stat
+    wcys = whatchanged --stat --since='yesterday'
+    wcws = whatchanged --stat --since='1 weeks ago'
+    chp = cherry-pick
+    chpx = cherry-pick -x
+    fp = format-patch
+    fpo = format-patch -s --cover-letter -o outgoing/ -M
+    fpstd = format-patch --stdout
+    sb = show-branch
+    mail = send-email --compose
+    autobuild = push autobuild +HEAD:master
+    w = status -b -s -uno
+    sambamr = "!f() { wget https://gitlab.com/samba-team/samba/merge_requests/$1.patch && git am -3 $1.patch;}; f"
+    libsshmr = "!f() { wget https://gitlab.com/libssh/libssh-mirror/merge_requests/$1.patch && git am -3 $1.patch;}; f"
+    cmockamr = "!f() { wget https://gitlab.com/cmocka/cmocka/merge_requests/$1.patch && git am -3 $1.patch;}; f"
+
+[init]
+	defaultBranch = main
+[credential "https://github.com"]
+	helper = !/usr/bin/gh auth git-credential
+[core]
+	editor = vim
