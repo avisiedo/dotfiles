@@ -5,11 +5,14 @@
 # https://www.youtube.com/watch?v=aolI_Rz0ZqY
 # https://www.youtube.com/watch?v=Md44rcw13k4
 # https://git-scm.com/book/en/v2
+#
+# Use ssh key to authorize and signing
+#   https://stackoverflow.com/questions/72844616/how-do-i-sign-git-commits-using-my-existing-ssh-key
 [user]
 # Please adapt and uncomment the following lines:
-	signingkey = 478B0FC61E45433A1850CD5EDD01B6FC13349AE7!
 	name = Alejandro Visiedo
 	email = avisiedo@redhat.com
+	signingkey = /home/avisiedo/.ssh/id_ed25519.pub
 [commit]
 	gpgsign = true
 [apply]
@@ -87,3 +90,5 @@
 	helper = !/usr/bin/gh auth git-credential
 [core]
 	editor = vim
+[gpg]
+	format = ssh
