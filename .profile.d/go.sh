@@ -1,4 +1,6 @@
 if [ -e ~/go ]; then
   # make available the go tools installed in the user environment
-  export PATH="$HOME/go/bin:$PATH"
+  pathmunge "$HOME/go/bin"
+  export PATH
+  export GOSUMDB="sum.golang.org"
 fi
