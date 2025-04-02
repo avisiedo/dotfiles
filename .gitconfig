@@ -11,7 +11,7 @@
 [user]
 # Please adapt and uncomment the following lines:
 	name = Alejandro Visiedo
-	email = avisiedo@redhat.com
+	email = alejandro.visiedo@gmail.com
 	signingkey = /home/avisiedo/.ssh/id_ed25519.pub
 [commit]
 	gpgsign = true
