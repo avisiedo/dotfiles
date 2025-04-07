@@ -1,3 +1,17 @@
+# [separator.left]
+# thick = "\ue0b0"
+# thin = "\ue0b1"
+
+[[left]]
+name = "os"
+color.background = "black"
+color.foreground = "blue"
+
+[[left]]
+name = "virtualenv"
+color.background = "black"
+color.foreground = "blue"
+
 [[left]]
 name = "dir"
 color.background = "blue"
