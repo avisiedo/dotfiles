@@ -183,16 +183,17 @@ system_monitor_info() {
 }
 
 status_bar() {
+  # It needs to avoid a sub-shell to keep the previous values for
+  # the network bandwidth information
+
   STATUS_BAR_PATH="/tmp/swaybar.txt"
   exec 3>"${STATUS_BAR_PATH}"
-  uptime_formatted >&3
-  printf " | " >&3
-  system_monitor_info >&3
-  printf " | " >&3
-  date_formatted >&3
-  printf " | " >&3
+  uptime_formatted >&3; printf " | " >&3
+  system_monitor_info >&3; printf " | " >&3
+  date_formatted >&3; printf " | " >&3
   battery_info >&3
   printf "%s" "$(cat "${STATUS_BAR_PATH}")"
+
   # echo "↑$(uptime_formatted) 🐧$(linux_version) 🔋$(batteryInfo) | $(date_formatted)"
   # 🐧$(linux_version) 🔋$(battery_info) | $(date_formatted)"
 }
