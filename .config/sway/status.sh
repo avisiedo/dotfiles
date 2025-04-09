@@ -10,14 +10,14 @@
 STATUS_BAR_PATH="$(mktemp --tmpdir=/tmp swaybar.XXXXXXX)"
 PID_BACKGROUND=0
 
-trap 'rm "${STATUS_BAR_PATH}"; kill $PID_BACKGROUND' TERM
+# trap '[ ! -e "${STATUS_BAR_PATH}" ] || rm -f "${STATUS_BAR_PATH}"; [ ${PID_BACKGROUND} -eq 1 ] || kill ${PID_BACKGROUND}' TERM EXIT ERR
+trap '[ ! -e "${STATUS_BAR_PATH}" ] || rm -f "${STATUS_BAR_PATH}"; [ ${PID_BACKGROUND} -eq 1 ] || kill ${PID_BACKGROUND}' TERM ERR INT QUIT HUP KILL ABRT
 
 # Fomat uptime
 uptime_formatted() {
-  local UPTIME="$(uptime)"
-  UPTIME="${UPTIME%%,*}"
-  UPTIME="${UPTIME##* }"
-  printf "↑%s" "${UPTIME}"
+  local UPTIME
+  read -a UPTIME < <(uptime)
+  printf "↑%s %s" "${UPTIME[2]}" "${UPTIME[3]%%,*}"
 }
 
 # Format date
