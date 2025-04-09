@@ -140,6 +140,15 @@ net_second_bytes_received=0
 net_second_bytes_transmited=0
 net_second_time=0
 
+check_network_connectivity() {
+  readarray -s 1 -t arp_entries < /proc/net/arp
+  if [ "${#arp_entries[@]}" -gt 0 ]; then
+    return 0
+  else
+    return 1
+  fi
+}
+
 network_info() {
   local net_line
   # ignore the header and loopback device
@@ -155,6 +164,12 @@ network_info() {
   net_first_bytes_transmited=$net_second_bytes_transmited
   net_first_time=$net_second_time
 
+  if check_network_connectivity; then
+    no_network=0
+  else
+    no_network=1
+  fi
+
   bytes_received=0
   bytes_transmited=0
   net_second_time=$(( $(date +%s%N) / 10000000 ))
@@ -162,9 +177,7 @@ network_info() {
   if [ ${#net_dev_lines[@]} -eq 0 ]; then
     rate_received=0
     rate_transmited=0
-    no_network=1
   else
-    no_network=0
     for net_line in "${net_dev_lines[@]}"; do
       field_bytes_received="$(printf "$net_line" | awk '{ print $2 }')"
       field_bytes_transmited="$(printf "$net_line" | awk '{ print $10 }')"
