@@ -17,7 +17,11 @@ trap '[ ! -e "${STATUS_BAR_PATH}" ] || rm -f "${STATUS_BAR_PATH}"; [ ${PID_BACKG
 uptime_formatted() {
   local UPTIME
   read -a UPTIME < <(uptime)
-  printf "↑%s %s" "${UPTIME[2]}" "${UPTIME[3]%%,*}"
+  if [ "${UPTIME}" == "${UPTIME%%:*}" ]; then
+    printf "↑%s %s" "${UPTIME[2]}" "${UPTIME[3]%%,*}"
+  else
+    printf "↑%s" "${UPTIME[2]%%,*}"
+  fi
 }
 
 # Format date
