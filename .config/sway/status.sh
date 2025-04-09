@@ -87,15 +87,18 @@ brightness_info() {
   local brightness=$(( (100 * brightness_value) / brightness_max ))
 
   # printf "💻"
-  if [[ $brightness -le 25 ]];then
-    printf "🔦%s%%" "$brightness"
-  elif [[ $brightness -le 50 ]];then
-    printf "💡%s%%" "$brightness"
-  elif [[ $brightness -le 75 ]];then
-    printf "🚦%s%%" "$brightness"
-  else
-    printf "☀️ %s%%" "$brightness"
-  fi
+  # if [[ $brightness -le 25 ]];then
+  #   printf "🔦%s%%" "$brightness"
+  # elif [[ $brightness -le 50 ]];then
+  #   printf "💡%s%%" "$brightness"
+  # elif [[ $brightness -le 75 ]];then
+  #   printf "🚦%s%%" "$brightness"
+  # else
+  #   printf "☀️ %s%%" "$brightness"
+  # fi
+
+  printf "💡%s%%" "$brightness"
+  return 0
 }
 
 cpu_info() {
@@ -235,7 +238,8 @@ status_bar() {
   uptime_formatted >&3; printf " | " >&3
   system_monitor_info >&3; printf " | " >&3
   date_formatted >&3; printf " | " >&3
-  battery_info >&3
+  battery_info >&3; printf " " >&3
+  brightness_info >&3
   printf "%s" "$(cat "${STATUS_BAR_PATH}")"
 
   # echo "↑$(uptime_formatted) 🐧$(linux_version) 🔋$(batteryInfo) | $(date_formatted)"
