@@ -115,7 +115,7 @@ set cursorcolumn
 " Wild menu
 set wildmenu
 set wildmode=full
-set cmdheight=2
+set cmdheight=0
 
 " vim-go mappings
 autocmd FileType go nmap <buffer> <F5> <plug>(go-run)
