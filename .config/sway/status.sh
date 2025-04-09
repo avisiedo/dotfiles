@@ -239,11 +239,19 @@ system_monitor_info() {
 
 volume_info() {
   local default_sink="$(pactl get-default-sink)"
+  local default_source="$(pactl get-default-source)"
+  local is_muted
+  local is_mic_muted
   local volume
   local volume_left
   local volume_right
   read -a is_muted < <(pactl get-sink-mute "${default_sink}")
+  read -a is_mic_muted < <(pactl get-source-mute "${default_source}")
   is_muted="${is_muted[1]}"
+  is_mic_muted="${is_mic_muted[1]}"
+  if [ "${is_mic_muted}" == "no" ]; then
+    printf "%s " "🎤"
+  fi
   if [ "${is_muted}" == "yes" ]; then
     printf "%s" "🔇"
   else
