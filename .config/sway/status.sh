@@ -7,6 +7,9 @@
 #   https://unix.stackexchange.com/questions/473788/simple-swaybar-example
 #   https://gist.githubusercontent.com/Ultra-Code/172bc21008062effb89780341cf56922/raw/0c73ba93364c5a1e1034e3e785fce19d8d069760/statusbar.zsh
 
+# utf icon list
+#   https://gist.github.com/BuonOmo/77b75349c517defb01ef1097e72227af
+
 STATUS_BAR_PATH="$(mktemp --tmpdir=/tmp swaybar.XXXXXXX)"
 PID_BACKGROUND=0
 
