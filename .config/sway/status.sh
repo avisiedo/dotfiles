@@ -248,7 +248,13 @@ volume_info() {
     volume_left="${volume[4]%%%*}"
     volume_right="${volume[11]%%%*}"
     volume=$(( (volume_left + volume_right) / 2 ))
-    printf "%s%s%%" "🔉" "${volume}"
+    if [ $volume -lt 33 ]; then
+      printf "%s%s%%" "🔈" "${volume}"
+    elif [ $volume -lt 66 ]; then
+      printf "%s%s%%" "🔉" "${volume}"
+    else
+      printf "%s%s%%" "🔊" "${volume}"
+    fi
   fi
 }
 
