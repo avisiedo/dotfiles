@@ -234,6 +234,24 @@ system_monitor_info() {
   cpu_info; printf " "; mem_info; printf " "; network_info
 }
 
+volume_info() {
+  local default_sink="$(pactl get-default-sink)"
+  local volume
+  local volume_left
+  local volume_right
+  read -a is_muted < <(pactl get-sink-mute "${default_sink}")
+  is_muted="${is_muted[1]}"
+  if [ "${is_muted}" == "yes" ]; then
+    printf "%s" "🔇"
+  else
+    read -a volume < <(pactl get-sink-volume "${default_sink}")
+    volume_left="${volume[4]%%%*}"
+    volume_right="${volume[11]%%%*}"
+    volume=$(( (volume_left + volume_right) / 2 ))
+    printf "%s%s%%" "🔉" "${volume}"
+  fi
+}
+
 status_bar() {
   # It needs to avoid a sub-shell to keep the previous values for
   # the network bandwidth information
@@ -243,7 +261,8 @@ status_bar() {
   system_monitor_info >&3; printf " | " >&3
   date_formatted >&3; printf " | " >&3
   battery_info >&3; printf " " >&3
-  brightness_info >&3
+  brightness_info >&3; printf " " >&3
+  volume_info >&3
   printf "%s" "$(cat "${STATUS_BAR_PATH}")"
 
   # echo "↑$(uptime_formatted) 🐧$(linux_version) 🔋$(batteryInfo) | $(date_formatted)"
