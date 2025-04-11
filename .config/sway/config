@@ -234,3 +234,6 @@ bindsym $mod+r mode "resize"
 # }
 
 include ./config.d/*
+
+exec ~/.config/sway/swayinitapp.sh
+
