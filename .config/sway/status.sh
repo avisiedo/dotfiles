@@ -20,7 +20,7 @@ trap '[ ! -e "${STATUS_BAR_PATH}" ] || rm -f "${STATUS_BAR_PATH}"; [ ${PID_BACKG
 uptime_formatted() {
   local UPTIME
   read -a UPTIME < <(uptime)
-  if [ "${UPTIME}" == "${UPTIME%%:*}" ]; then
+  if [ "${UPTIME[2]}" == "${UPTIME[2]%%:*}" ]; then
     printf "↑%s %s" "${UPTIME[2]}" "${UPTIME[3]%%,*}"
   else
     printf "↑%s" "${UPTIME[2]%%,*}"
@@ -39,8 +39,8 @@ linux_version() {
   printf "%s" "${UNAME}"
 }
 
+# Battery information
 battery_info() {
-  # Battery status
   local battery_path="/sys/class/power_supply/macsmc-battery"
   local ac_path="/sys/class/power_supply/macsmc-ac"
 
