@@ -1,0 +1,22 @@
+# https://alacritty.org/config-alacritty.html
+# man 5 alacritty
+[general]
+import = []
+working_directory = "/home/avisiedo/workspace"
+# live_config_reload = true
+# ipc_socket = true
+
+[env]
+WINIT_X11_SCALE_FACTOR = "1.0"
+
+[window]
+# dimensions = { columns , lines = }
+opacity = 0.9
+
+[font]
+normal = { family = "monospace", style = "Light" }
+size = 9
+
+[terminal]
+shell = { program = "/bin/bash", args = [] }
+
