@@ -124,7 +124,13 @@ cpu_info() {
   #maybe get average load from /proc/loadavg
   #local average_load_in_1min=$(cat /proc/loadavg | cut -d' ' -f1) #uptime | sed -E 's|.{52}([[:digit:]]+.[[:digit:]]+).*|\1|g'
   # printf "  %d %.1f" "$average_load_in_1min"  "$usage"
-  printf " %.1f" "${usage_main}.${usage_decimal}"
+  # FIXME Something is wrong when calculating, sometimes negative values are got
+  #       -4.-1
+  if [ $usage_main -gt 0 ] && [ $usage_decimal -gt 0 ]; then
+    printf " %.1f" "${usage_main}.${usage_decimal}"
+  else
+    printf " %.1f" "0.0"
+  fi
 }
 
 mem_info() {
