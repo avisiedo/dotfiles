@@ -275,11 +275,21 @@ volume_info() {
   fi
 }
 
+playing_info() {
+  local title=""
+  which playerctl &>/dev/null || return 0
+  if [ "$(playerctl status)" == "Playing" ]; then
+    title="$(playerctl metadata title)"
+    printf "%s %s | " "${title}" "🎵"
+  fi
+}
+
 status_bar() {
   # It needs to avoid a sub-shell to keep the previous values for
   # the network bandwidth information
 
   exec 3>"${STATUS_BAR_PATH}"
+  playing_info >&3
   uptime_formatted >&3; printf " | " >&3
   system_monitor_info >&3; printf " | " >&3
   date_formatted >&3; printf " | " >&3
