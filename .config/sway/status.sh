@@ -109,11 +109,16 @@ brightness_info() {
 }
 
 cpu_info() {
-  local previous_idle_time=$(cat /proc/stat | sed -En '1 s|^\w+\s+([[:digit:]]+\s+){3}([[:digit:]]+).*|\2|p')
-  local previous_total_time=$(( $(cat /proc/stat | sed -En '1,1 s|^\w+\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)$| (\1 + \2 + \3 + \4 + \5 + \6 + \7 + \8 + \9)|p') ))
+  # See: filesystems/proc.rst  at Linux Kernel Documentation
+  local previous_idle_time=$(head -n 1 /proc/stat | sed -En 's|^\w+\s+([[:digit:]]+\s+){3}([[:digit:]]+).*|\2|p')
+  local previous_system_time=$(head -n 1 /proc/stat | sed -En 's|^\w+\s+([[:digit:]]+\s+){2}([[:digit:]]+).*|\2|p')
+  local previous_user_time=$(head -n 1 /proc/stat | sed -En 's|^\w+\s+([[:digit:]]+).*|\1|p')
+  local previous_total_time=$(( previous_idle_time + previous_system_time + previous_user_time ))
   sleep 0.3
-  local current_idle_time=$(cat /proc/stat | sed -En '1 s|^\w+\s+([[:digit:]]+\s+){3}([[:digit:]]+).*|\2|p')
-  local current_total_time=$(( $(cat /proc/stat | sed -En '1,1 s|^\w+\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)\s+([0-9]+)$| (\1 + \2 + \3 + \4 + \5 + \6 + \7 + \8 + \9)|p') ))
+  local current_idle_time=$(head -n 1 /proc/stat | sed -En 's|^\w+\s+([[:digit:]]+\s+){3}([[:digit:]]+).*|\2|p')
+  local current_system_time=$(head -n 1 /proc/stat | sed -En 's|^\w+\s+([[:digit:]]+\s+){2}([[:digit:]]+).*|\2|p')
+  local current_user_time=$(head -n 1 /proc/stat | sed -En 's|^\w+\s+([[:digit:]]+).*|\1|p')
+  local current_total_time=$(( current_idle_time + current_system_time + current_user_time ))
 
   local idle_time=$((current_idle_time - previous_idle_time))
   local total_time=$((current_total_time - previous_total_time))
@@ -121,16 +126,7 @@ cpu_info() {
   local usage=$(( 1000 - ((1000*idle_time)/total_time) ))
   local usage_main="$(( usage / 10 ))"
   local usage_decimal="$(( usage - usage_main * 10))"
-  #maybe get average load from /proc/loadavg
-  #local average_load_in_1min=$(cat /proc/loadavg | cut -d' ' -f1) #uptime | sed -E 's|.{52}([[:digit:]]+.[[:digit:]]+).*|\1|g'
-  # printf "  %d %.1f" "$average_load_in_1min"  "$usage"
-  # FIXME Something is wrong when calculating, sometimes negative values are got
-  #       -4.-1
-  if [ $usage_main -gt 0 ] && [ $usage_decimal -gt 0 ]; then
-    printf " %.1f" "${usage_main}.${usage_decimal}"
-  else
-    printf " %.1f" "0.0"
-  fi
+  printf " %d.%d" "${usage_main}" "${usage_decimal}"
 }
 
 mem_info() {
