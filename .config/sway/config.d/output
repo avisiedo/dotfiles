@@ -1,2 +1,3 @@
 # output * bg /usr/share/backgrounds/sway/Sway_Wallpaper_Blue_1920x1080.png fill
-output * bg /usr/share/backgrounds/fedora-workstation/flight_light.webp fill
+# output * bg /usr/share/backgrounds/fedora-workstation/flight_light.webp fill
+output * bg /home/avisiedo/Pictures/Wallpapers/beach.jpg fill
