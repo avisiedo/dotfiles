@@ -39,10 +39,31 @@ linux_version() {
   printf "%s" "${UNAME}"
 }
 
+discover_battery_path() {
+  for item in /sys/class/power_supply/*-battery; do
+    printf "%s" "${item}"
+    return 0
+  done
+  return 1
+}
+
+discover_ac_path() {
+  for item in /sys/class/power_supply/*-ac; do
+    printf "%s" "${item}"
+    return 0
+  done
+  return 1
+}
+
 # Battery information
 battery_info() {
-  local battery_path="/sys/class/power_supply/macsmc-battery"
-  local ac_path="/sys/class/power_supply/macsmc-ac"
+  local battery_path="$(discover_battery_path)"
+  local ac_path="$(discover_ac_path)"
+
+  if [ "${battery_path}" == "" ] || [ "${ac_path}" == "" ]; then
+    printf "⚡unknown"
+    return 1
+  fi
 
   local battery_status
   local ac_online
