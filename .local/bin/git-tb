@@ -1,0 +1,98 @@
+#!/bin/bash
+
+# @file git-toolbox
+# @brief git toolbox for more productive day to day.
+
+set -e
+
+WORKSPACE="${WORKSPACE:-${HOME}/workspace}"
+
+# @brief Traverse workspace to find git repositories
+# and execute `git "$@"` for each of them.
+git_toolbox_all() {
+    for item in $(find "${WORKSPACE}" -type d -name .git -prune -print); do
+        ( (cd "${item%/.git}" && "$@" && printf "info: ok at '%s'\n" "${item%/.git}") ||
+            ret=$?
+            printf "error: failed at '%s' for '%s' command: ret=%d\n" "${item%/.git}" "$*" "$ret"
+            return $ret
+        )
+    done
+    return 0
+}
+
+# @brief for every git repository found (no sub-modules) run the indicated action.
+git_toolbox_all_pull() {
+    git_toolbox_all git pull
+}
+
+git_toolbox_check__helper() {
+    (! git diff --quiet || ! git diff --cached --quiet) && printf "%s\n" "${PWD}"
+}
+# @brief Traverse workspace to find git repositories and
+# check if they have some changes pending to commit.
+# @stdout path to the detected repositories.
+# @return 0 on success
+git_toolbox_check() {
+    # for item in $(find "${WORKSPACE}" -type d -name .git -prune -print); do
+    #     (cd "${item%/.git}";
+    #     ! git diff --quiet || ! git diff --cached --quiet) &&
+    #         printf "%s\n" "${item%/.git}"
+    # done
+    # return 0
+    git_toolbox_all git_toolbox_check__helper
+}
+
+# @brief Traverse workspace to find git repositories and
+# check if the remote repositories are on sync with the local
+# branches.
+git_toolbox_check_remote() {
+    printf "error: not implemented\n" >&2
+    return 1
+}
+
+# @brief Traverse workspace to find git repositories and
+# try to push remote branches to keep them updated with the
+# local branches.
+git_toolbox_push_remote() {
+    printf "error: not implemented\n" >&2
+    return 1
+}
+
+# @brief Show subcommands and description about them.
+git_toolbox_help() {
+    cat <<EOF
+Usage: $1 subcommand ...
+  help          Show this text for helping the user.
+  check         Traverse directories searching for git repositories and check if some pending local change.
+  check_remote  Traverse if some repository has no remote branch for the contents.
+  push_remote   For every repo with remote branch not synced, try to push changes.
+  pull          Try to pull all the repositories.
+EOF
+}
+
+main() {
+    local subcmd="$1"
+    case "${subcmd}" in
+        check )
+            shift 1
+            git_toolbox_${subcmd} "$@"
+            return $?
+            ;;
+        pull )
+            shift 1
+            git_toolbox_all_${subcmd} "$@"
+            ;;
+        help )
+            git_toolbox_${subcmd} "${BASH_SOURCE[0]}"
+            ;;
+        * )
+            printf "error: unknown subcommand '%s'\n" "$0" >&2
+            return 1
+    esac
+}
+
+if [ "${BASH_SOURCE[0]}" == "$0" ]; then
+    main "$@"
+    exit $?
+fi
+
