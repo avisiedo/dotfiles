@@ -1,3 +1,8 @@
 [command-line-heroes]
 url=https://feeds.simplecast.com/vUHP7wpf
-spool=/home/avisiedo/podcasts
+spool=/home/avisiedo/podcasts/command-line-heroes
+
+[kubernetes-podcast-from-google]
+url=https://kubernetespodcast.com/feeds/audio.xml
+spool=/home/avisiedo/podcasts/kubernetes
+
