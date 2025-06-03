@@ -10,12 +10,40 @@ WORKSPACE="${WORKSPACE:-${HOME}/workspace}"
 # @brief Traverse workspace to find git repositories
 # and execute `git "$@"` for each of them.
 git_toolbox_all() {
+    local continue_on_error=0
+    local verbose=0
+    export verbose
+
+    # Arguments
+    while [ "${1#-}" != "$1" ]; do
+        case "$1" in
+            "--continue" | "-c" )
+                shift 1
+                continue_on_error=1
+                ;;
+            "--verbose" | "-v" )
+                verbose=1
+                shift 1
+                ;;
+            * )
+                printf "error: at '%s': '%s' unexpected\n" "$0" "$1" >&2
+
+        esac
+    done
+
+    # Traverse git repositories at WORKSPACE
     for item in $(find "${WORKSPACE}" -type d -name .git -prune -print); do
-        ( (cd "${item%/.git}" && "$@" && printf "info: ok at '%s'\n" "${item%/.git}") ||
-            ret=$?
-            printf "error: failed at '%s' for '%s' command: ret=%d\n" "${item%/.git}" "$*" "$ret"
-            return $ret
-        )
+        ret=0
+        ( set +e; cd "${item%/.git}" && "$@"
+          ret=$?
+          [ ${verbose} -eq 0 ] || printf "info: '%s'\n" "${item%/.git}" >&2
+          [ ${ret} -eq 0 ] || printf "error: '%s' failed for '%s' command: ret=%d\n" "${item%/.git}" "$*" "${ret}" >&2
+          exit $ret
+        ) || ret=$?
+        # If failed and should not continue on error, then return $ret
+        if [ ${ret} -ne 0 ] && [ ${continue_on_error} -eq 0 ]; then
+            return ${ret}
+        fi
     done
     return 0
 }
@@ -26,7 +54,11 @@ git_toolbox_all_pull() {
 }
 
 git_toolbox_check__helper() {
-    (! git diff --quiet || ! git diff --cached --quiet) && printf "%s\n" "${PWD}"
+    if git diff --quiet && git diff --cached --quiet; then
+        return 0
+    else
+        return 1
+    fi
 }
 # @brief Traverse workspace to find git repositories and
 # check if they have some changes pending to commit.
@@ -39,7 +71,7 @@ git_toolbox_check() {
     #         printf "%s\n" "${item%/.git}"
     # done
     # return 0
-    git_toolbox_all git_toolbox_check__helper
+    git_toolbox_all --continue --verbose git_toolbox_check__helper
 }
 
 # @brief Traverse workspace to find git repositories and
