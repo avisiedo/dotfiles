@@ -34,6 +34,7 @@ autocmd VimEnter * if argc() == 0 && !exists('s:std_in') | NERDTree | endif
 autocmd BufEnter * if tabpagenr('$') == 1 && winnr('$') == 1 && exists('b:NERDTree') && b:NERDTree.isTabTree() | call feedkeys(":quit\<CR>:\<BS>") | endif
 
 " Install plugins using vim-plug
+" Run: nvim -c PlugInstall -c q -c q --headless
 call plug#begin('~/.vim/plugged')
 Plug 'morhetz/gruvbox'
 Plug 'tpope/vim-fugitive'
@@ -119,4 +120,8 @@ set cmdheight=0
 
 " vim-go mappings
 autocmd FileType go nmap <buffer> <F5> <plug>(go-run)
+
+" Width column
+set colorcolumn=50,72,80
+highlight ColorColumn ctermbg=black guibg=#333333
 
