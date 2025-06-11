@@ -1,0 +1,4 @@
+#!/bin/bash
+export HISTSIZE=0
+export HISTFILE=~/.bash_history_private
+exec /bin/bash "$@"
