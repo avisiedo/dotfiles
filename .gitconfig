@@ -5,6 +5,7 @@
 # https://www.youtube.com/watch?v=aolI_Rz0ZqY
 # https://www.youtube.com/watch?v=Md44rcw13k4
 # https://git-scm.com/book/en/v2
+# https://git-scm.com/docs/gittutorial
 #
 # Use ssh key to authorize and signing
 #   https://stackoverflow.com/questions/72844616/how-do-i-sign-git-commits-using-my-existing-ssh-key
@@ -80,9 +81,6 @@
     mail = send-email --compose
     autobuild = push autobuild +HEAD:master
     w = status -b -s -uno
-    sambamr = "!f() { wget https://gitlab.com/samba-team/samba/merge_requests/$1.patch && git am -3 $1.patch;}; f"
-    libsshmr = "!f() { wget https://gitlab.com/libssh/libssh-mirror/merge_requests/$1.patch && git am -3 $1.patch;}; f"
-    cmockamr = "!f() { wget https://gitlab.com/cmocka/cmocka/merge_requests/$1.patch && git am -3 $1.patch;}; f"
 
 [init]
 	defaultBranch = main
