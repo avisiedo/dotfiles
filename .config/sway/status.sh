@@ -306,14 +306,20 @@ status_bar() {
   # the network bandwidth information
 
   exec 3>"${STATUS_BAR_PATH}"
-  playing_info >&3
+  # FIXME The error message was get meanwhile playing the url: https://www.youtube.com/watch?v=TumXs9SUADA
+  #       Related with playing_info
+  #       Likely related with no escaped characters
+  #       Commented until located
+  # 00:01:02.439 [ERROR] [common/pango.c:66] pango_parse_markup 'Fito y Fitipaldis & Coque Malla - Ruido (Tributo a Sabina) [Videoclip Oficial] 🎵 | ↑1:05 |  5.3  8.1 GiB(11)%  ↑514bps↓514bps | 📆 Sun 15-Jun-2025 11:58 | ⚡↓33% 💡77% 🎤 🔉45%' -> error Error on line 1: Entity did not end with a semicolon; most likely you used an ampersand character without intending to start an entity — escape ampersand as &amp;
+
+  # playing_info >&3; printf " | " >&3
   uptime_formatted >&3; printf " | " >&3
   system_monitor_info >&3; printf " | " >&3
   date_formatted >&3; printf " | " >&3
   battery_info >&3; printf " " >&3
   brightness_info >&3; printf " " >&3
   volume_info >&3
-  printf "%s" "$(cat "${STATUS_BAR_PATH}")"
+  printf "%s" "$(cat "${STATUS_BAR_PATH}" )"
 
   # echo "↑$(uptime_formatted) 🐧$(linux_version) 🔋$(batteryInfo) | $(date_formatted)"
   # 🐧$(linux_version) 🔋$(battery_info) | $(date_formatted)"
