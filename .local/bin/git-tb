@@ -6,6 +6,7 @@
 set -e
 
 WORKSPACE="${WORKSPACE:-${HOME}/workspace}"
+[ -e "${WORKSPACE}" ] || WORKSPACE="${PWD}"
 
 # @brief Traverse workspace to find git repositories
 # and execute `git "$@"` for each of them.
@@ -53,6 +54,11 @@ git_toolbox_all_pull() {
     git_toolbox_all git pull
 }
 
+# @description Print every entry detected
+git_toolbox_all_print() {
+    git_toolbox_all realpath .
+}
+
 git_toolbox_check__helper() {
     if git diff --quiet && git diff --cached --quiet; then
         return 0
@@ -95,6 +101,7 @@ git_toolbox_help() {
     cat <<EOF
 Usage: $1 subcommand ...
   help          Show this text for helping the user.
+  print         List paths with the detected repositories.
   check         Traverse directories searching for git repositories and check if some pending local change.
   check_remote  Traverse if some repository has no remote branch for the contents.
   push_remote   For every repo with remote branch not synced, try to push changes.
@@ -110,7 +117,7 @@ main() {
             git_toolbox_${subcmd} "$@"
             return $?
             ;;
-        pull )
+        pull | print)
             shift 1
             git_toolbox_all_${subcmd} "$@"
             ;;
