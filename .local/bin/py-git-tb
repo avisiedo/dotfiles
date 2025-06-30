@@ -21,8 +21,8 @@ class _:
     # os.walk return filenames on index 0
     WALK_FILENAMES = 2
 
-    # subcommand value for print
-    SUBCMD_PRINT = 'print'
+    # subcommand value for list
+    SUBCMD_LIST = 'list'
     # subcommand value for check
     SUBCMD_CHECK = 'check'
     # subcommand value for pull
@@ -63,11 +63,11 @@ def git_tb_all(basedir, f, *args, **kargs):
                 git_tb_all(os.path.join(basedir, new_dir), f, *args, **kargs)
         break
 
-def git_tb_print_helper(*args, **kargs):
+def git_tb_list_helper(*args, **kargs):
     print('{}'.format(kargs[_.GIT_PATH]))
 
-def git_tb_print():
-    git_tb_all(WORKSPACE, git_tb_print_helper)
+def git_tb_list():
+    git_tb_all(WORKSPACE, git_tb_list_helper)
 
 def git_tb_check_helper(*args, **kargs):
     logging.info('repository at: "{}"'.format(kargs[_.GIT_PATH]))
@@ -106,7 +106,7 @@ def git_tb_args():
             action='store_true', dest='version', default='v1.0.0')
     subparsers = parser.add_subparsers(dest='command')
 
-    print_parser = subparsers.add_parser(_.SUBCMD_PRINT, help='Print repositories in the workspace')
+    print_parser = subparsers.add_parser(_.SUBCMD_LIST, help='List the repositories detected in the workspace')
 
     check_parser = subparsers.add_parser(_.SUBCMD_CHECK, help='Check repositories for pending local changes')
 
@@ -131,7 +131,7 @@ def setup_logs(args):
 
 def main():
     SUBCOMMANDS = {
-        _.SUBCMD_PRINT: git_tb_print,
+        _.SUBCMD_LIST: git_tb_list,
         _.SUBCMD_CHECK: git_tb_check,
         _.SUBCMD_PULL: git_tb_pull,
         _.SUBCMD_BACKUP: git_tb_backup,
