@@ -86,10 +86,10 @@ def git_tb_pull(*args, **kargs):
     git_tb_all(WORKSPACE, git_tb_pull_helper)
 
 def git_tb_backup():
-    raise NotImplemented
+    raise RuntimeError('Not implemented')
 
 def git_tb_restore():
-    raise NotImplemented
+    raise RuntimeError('Not implemented')
 
 def git_tb_args():
     parser = argparse.ArgumentParser(
