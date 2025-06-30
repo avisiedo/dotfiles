@@ -8,9 +8,9 @@ if ! pgrep opensnitch-ui &>/dev/null; then
     fi
 fi
 
-if ! pgrep rythmbox &>/dev/null; then
-    if which rythmbox &>/dev/null; then
-        swaymsg "exec /usr/bin/rythmbox"
+if ! pgrep rhythmbox &>/dev/null; then
+    if which rhythmbox &>/dev/null; then
+        swaymsg "exec /usr/bin/rhythmbox"
     fi
 fi
 
