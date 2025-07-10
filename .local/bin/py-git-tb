@@ -13,6 +13,13 @@ class _:
     GIT_PATH = 'git_path'
     GIT = 'git'
     HIDDEN_GIT = '.git'
+    UTF_8 = 'utf-8'
+    # Environmnet variable with the ordered list of priorities for upstream
+    # in the workspace; by default is set to 
+    # "upstream,origin" => ['upstream', 'origin']
+    ENV_GIT_REMOTES = 'GIT_REMOTES'
+    ENV_GIT_REMOTES = 'GIT_REMOTES'
+    GIT_REMOTES_DEFAULT = 'upstream,origin'
 
     # os.walk return dirpath on index 0
     WALK_DIRPATH = 0
@@ -21,15 +28,12 @@ class _:
     # os.walk return filenames on index 0
     WALK_FILENAMES = 2
 
-    # subcommand value for list
+    # Subcommands
     SUBCMD_LIST = 'list'
-    # subcommand value for check
     SUBCMD_CHECK = 'check'
-    # subcommand value for pull
     SUBCMD_PULL = 'pull'
-    # subcommand value for backup
+    SUBCMD_PUSH = 'push'
     SUBCMD_BACKUP = 'backup'
-    # subcommand value for restore
     SUBCMD_RESTORE = 'restore'
 
     # Ignore node_modules which use to have a huge directory structure
@@ -46,7 +50,7 @@ def git(*args, **kargs):
     """Wrapper to invoke git commands"""
     if not _.GIT_PATH in kargs:
         raise KeyError("'{}'".format(_.GIT_PATH))
-    return subprocess.run([_.GIT, *args], cwd=kargs[_.GIT_PATH])
+    return subprocess.run([_.GIT, *args], cwd=kargs[_.GIT_PATH], capture_output=True, **kargs)
 
 def git_tb_all(basedir, f, *args, **kargs):
     for item in os.walk(basedir, topdown=True):
@@ -85,6 +89,26 @@ def git_tb_pull_helper(*args, **kargs):
 def git_tb_pull(*args, **kargs):
     git_tb_all(WORKSPACE, git_tb_pull_helper)
 
+def get_priority_git_remotes():
+    remotes = os.environ.get(_.ENV_GIT_REMOTES, _.GIT_REMOTES_DEFAULT).split(',')
+    return remotes
+
+def git_tb_push_helper(*args, **kargs):
+    try:
+        cwd = kargs[_.GIT_PATH]
+        res_remote = git('remote', cwd=cwd)
+        remotes = res_remote.stdout.decode(_.UTF_8).split_lines()
+        for remote in get_priority_git_remotes():
+            if remote in remotes:
+                git('push', remote, '--all', cwd=cwd)
+                return
+        logging.warning('{}: repository not pushed'.format(cwd))
+    except Exception as e:
+        logging.error('{}: {}'.format(cwd, e))
+
+def git_tb_push():
+    git_tb_all(WORKSPACE, git_tb_push_helper)
+
 def git_tb_backup():
     raise RuntimeError('Not implemented')
 
@@ -112,6 +136,8 @@ def git_tb_args():
 
     pull_parser = subparsers.add_parser(_.SUBCMD_PULL, help='Run pull for all the repositories in the workspace')
 
+    push_parser = subparsers.add_parser(_.SUBCMD_PUSH, help='Run push for all the repositories for upstream, or origin (the first found)')
+
     backup_parser = subparsers.add_parser(_.SUBCMD_BACKUP, help='Generate a "workspace.yaml" file that can be used to recover the workspace state')
     backup_parser.add_argument('name', help='Name of the item')
 
@@ -129,14 +155,18 @@ def setup_logs(args):
         logging.basicConfig(level=logging.DEBUG)
         logging.info('setting DEBUG log level')
 
-def main():
-    SUBCOMMANDS = {
+def get_subcommands_map():
+    return {
         _.SUBCMD_LIST: git_tb_list,
         _.SUBCMD_CHECK: git_tb_check,
         _.SUBCMD_PULL: git_tb_pull,
+        _.SUBCMD_PUSH: git_tb_push,
         _.SUBCMD_BACKUP: git_tb_backup,
         _.SUBCMD_RESTORE: git_tb_restore,
     }
+
+def main():
+    SUBCOMMANDS = get_subcommands_map()
     args = git_tb_args().parse_args()
     setup_logs(args)
     subcommand = args.command
