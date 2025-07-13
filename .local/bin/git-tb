@@ -1,137 +1,235 @@
-#!/bin/bash
+#!/usr/bin/python3
+import sys
+import os
+import argparse
+import logging
+import subprocess
 
-# @file git-toolbox
-# @brief git toolbox for more productive day to day.
+WORKSPACE = os.environ.get('WORKSPACE', os.path.join(os.environ['HOME'], 'workspace'))
 
-set -e
+class _:
+    """Encapsulate the constants"""
+    PROG = 'py-git-tb'
+    KEY_CWD = 'cwd'
+    GIT = 'git'
+    HIDDEN_GIT = '.git'
+    UTF_8 = 'utf-8'
+    # Environmnet variable with the ordered list of priorities for upstream
+    # in the workspace; by default is set to 
+    # "upstream,origin" => ['upstream', 'origin']
+    ENV_GIT_REMOTES = 'GIT_REMOTES'
+    GIT_REMOTES_DEFAULT = 'upstream,origin'
 
-WORKSPACE="${WORKSPACE:-${HOME}/workspace}"
-[ -e "${WORKSPACE}" ] || WORKSPACE="${PWD}"
+    # os.walk return dirpath on index 0
+    WALK_DIRPATH = 0
+    # os.walk return dirnames on index 1
+    WALK_DIRNAMES = 1
+    # os.walk return filenames on index 2
+    WALK_FILENAMES = 2
 
-# @brief Traverse workspace to find git repositories
-# and execute `git "$@"` for each of them.
-git_toolbox_all() {
-    local continue_on_error=0
-    local verbose=0
-    export verbose
+    # Subcommands
+    SUBCMD_LIST = 'list'
+    SUBCMD_CHECK = 'check'
+    SUBCMD_PULL = 'pull'
+    SUBCMD_PUSH = 'push'
+    SUBCMD_BACKUP = 'backup'
+    SUBCMD_RESTORE = 'restore'
 
-    # Arguments
-    while [ "${1#-}" != "$1" ]; do
-        case "$1" in
-            "--continue" | "-c" )
-                shift 1
-                continue_on_error=1
-                ;;
-            "--verbose" | "-v" )
-                verbose=1
-                shift 1
-                ;;
-            * )
-                printf "error: at '%s': '%s' unexpected\n" "$0" "$1" >&2
+    # git commands
+    GIT_CMD_REMOTE = 'remote'
+    GIT_CMD_PUSH = 'push'
 
-        esac
-    done
+    # Ignore node_modules which use to have a huge directory structure
+    FILTER_NODE_MODULES = 'node_modules'
+    # Ignore .venv which use to have a huge directory structure
+    FILTER_VENV = '.venv'
+    # List for the directories to filter to accelerate the .git traverse.
+    FILTERS = (FILTER_NODE_MODULES, FILTER_VENV)
 
-    # Traverse git repositories at WORKSPACE
-    for item in $(find "${WORKSPACE}" -type d -name .git -prune -print); do
-        ret=0
-        ( set +e; cd "${item%/.git}" && "$@"
-          ret=$?
-          [ ${verbose} -eq 0 ] || printf "info: '%s'\n" "${item%/.git}" >&2
-          [ ${ret} -eq 0 ] || printf "error: '%s' failed for '%s' command: ret=%d\n" "${item%/.git}" "$*" "${ret}" >&2
-          exit $ret
-        ) || ret=$?
-        # If failed and should not continue on error, then return $ret
-        if [ ${ret} -ne 0 ] && [ ${continue_on_error} -eq 0 ]; then
-            return ${ret}
-        fi
-    done
-    return 0
-}
+    SUBP_CAPTURE_OUTPUT = 'capture_output'
 
-# @brief for every git repository found (no sub-modules) run the indicated action.
-git_toolbox_all_pull() {
-    git_toolbox_all git pull
-}
+    CHECK_MODIFIED = 'modified'
+    CHECK_ADDED = 'added'
+    CHECK_UNKNOWN = 'unknown'
+    CHECK_NO_TRACKED = 'no-tracked'
+    CHECK_DELETED = 'deleted'
 
-# @description Print every entry detected
-git_toolbox_all_print() {
-    git_toolbox_all realpath .
-}
+    ERR_NOT_IMPLEMENTED = 'Not Implemented'
 
-git_toolbox_check__helper() {
-    if git diff --quiet && git diff --cached --quiet; then
-        return 0
-    else
-        return 1
-    fi
-}
-# @brief Traverse workspace to find git repositories and
-# check if they have some changes pending to commit.
-# @stdout path to the detected repositories.
-# @return 0 on success
-git_toolbox_check() {
-    # for item in $(find "${WORKSPACE}" -type d -name .git -prune -print); do
-    #     (cd "${item%/.git}";
-    #     ! git diff --quiet || ! git diff --cached --quiet) &&
-    #         printf "%s\n" "${item%/.git}"
-    # done
-    # return 0
-    git_toolbox_all --continue --verbose git_toolbox_check__helper
-}
+    
 
-# @brief Traverse workspace to find git repositories and
-# check if the remote repositories are on sync with the local
-# branches.
-git_toolbox_check_remote() {
-    printf "error: not implemented\n" >&2
-    return 1
-}
+def git_tb_help():
+    pass
 
-# @brief Traverse workspace to find git repositories and
-# try to push remote branches to keep them updated with the
-# local branches.
-git_toolbox_push_remote() {
-    printf "error: not implemented\n" >&2
-    return 1
-}
+def git(*args, **kargs):
+    """Wrapper to invoke git commands"""
+    if not _.KEY_CWD in kargs:
+        raise KeyError("'{}'".format(_.KEY_CWD))
+    if not _.SUBP_CAPTURE_OUTPUT in kargs:
+        kargs[_.SUBP_CAPTURE_OUTPUT] = True
+    return subprocess.run([_.GIT, *args], **kargs)
 
-# @brief Show subcommands and description about them.
-git_toolbox_help() {
-    cat <<EOF
-Usage: $1 subcommand ...
-  help          Show this text for helping the user.
-  print         List paths with the detected repositories.
-  check         Traverse directories searching for git repositories and check if some pending local change.
-  check_remote  Traverse if some repository has no remote branch for the contents.
-  push_remote   For every repo with remote branch not synced, try to push changes.
-  pull          Try to pull all the repositories.
-EOF
-}
+def git_tb_all(basedir, f, *args, **kargs):
+    for item in os.walk(basedir, topdown=True):
+        if _.HIDDEN_GIT in item[_.WALK_DIRNAMES]:
+            kargs[_.KEY_CWD] = basedir
+            f(*args, **kargs)
+        else:
+            # Prune some well known directories
+            for filter_item in _.FILTERS:
+                if filter_item in item[_.WALK_DIRNAMES]:
+                    item[_.WALK_DIRNAMES].remove(filter_item)
+            # Recursive call to the remaining directories
+            for new_dir in item[_.WALK_DIRNAMES]:
+                git_tb_all(os.path.join(basedir, new_dir), f, *args, **kargs)
+        break
 
-main() {
-    local subcmd="$1"
-    case "${subcmd}" in
-        check )
-            shift 1
-            git_toolbox_${subcmd} "$@"
-            return $?
-            ;;
-        pull | print)
-            shift 1
-            git_toolbox_all_${subcmd} "$@"
-            ;;
-        help )
-            git_toolbox_${subcmd} "${BASH_SOURCE[0]}"
-            ;;
-        * )
-            printf "error: unknown subcommand '%s'\n" "$0" >&2
-            return 1
-    esac
-}
+def git_tb_list_helper(*args, **kargs):
+    print('{}'.format(kargs[_.KEY_CWD]))
 
-if [ "${BASH_SOURCE[0]}" == "$0" ]; then
-    main "$@"
-    exit $?
-fi
+def git_tb_list():
+    git_tb_all(WORKSPACE, git_tb_list_helper)
+
+def git_tb_check_analyze(output: str) -> dict:
+    """Analyze the output from git_tb_check_helper"""
+    summary={}
+    if output == '':
+        return summary
+    lines = output.split('\n')
+    if len(lines) == 0:
+        return summary
+    for line in lines:
+        if line == '':
+            continue
+        if line[0:2] == ' M' or line[0:2] == 'M ':
+            summary[_.CHECK_MODIFIED] = summary.get(_.CHECK_MODIFIED, 0) + 1
+        elif line[0:2] == 'A ':
+            summary[_.CHECK_ADDED] = summary.get(_.CHECK_ADDED, 0) + 1
+        elif line[0:2] == 'D ' or line[0:2] == ' D':
+            summary[_.CHECK_DELETED] = summary.get(_.CHECK_DELETED, 0) + 1
+        elif line[0:2] == '??':
+            summary[_.CHECK_NO_TRACKED] = summary.get(_.CHECK_NO_TRACKED, 0) + 1
+        else:
+            summary[_.CHECK_UNKNOWN] = summary.get(_.CHECK_UNKNOWN, 0) + 1
+    return summary
+
+def git_tb_check_print(summary:dict):
+    for key, value in summary.items():
+        if key == _.CHECK_ADDED:
+            print('added files: {}'.format(value))
+        elif key == _.CHECK_MODIFIED:
+            print('modified files: {}'.format(value))
+        elif key == _.CHECK_DELETED:
+            print('deleted files: {}'.format(value))
+        elif key == _.CHECK_NO_TRACKED:
+            print('no tracked files: {}'.format(value))
+        elif key == _.CHECK_UNKNOWN:
+            print('unknown: {}'.format(value))
+
+def git_tb_check_helper(*args, **kargs):
+    result = git('status', '--ignore-submodules', '--porcelain', cwd=kargs[_.KEY_CWD], capture_output=True)
+    summary = git_tb_check_analyze(result.stdout.decode(_.UTF_8))
+    result = git('branch', '--no-merged', cwd=kargs[_.KEY_CWD], capture_output=True)
+    if len(summary) > 0:
+        logging.info('repository at: "{}"'.format(kargs[_.KEY_CWD]))
+        git_tb_check_print(summary)
+
+def git_tb_check():
+    git_tb_all(WORKSPACE, git_tb_check_helper, stdout=None)
+
+def git_tb_pull_helper(*args, **kargs):
+    logging.info('repository at: "{}"'.format(kargs[_.KEY_CWD]))
+    git('pull', *args, **kargs)
+
+def git_tb_pull(*args, **kargs):
+    git_tb_all(WORKSPACE, git_tb_pull_helper)
+
+def get_priority_git_remotes():
+    remotes = os.environ.get(_.ENV_GIT_REMOTES, _.GIT_REMOTES_DEFAULT).split(',')
+    return remotes
+
+def git_tb_push_helper(*args, **kargs):
+    try:
+        cwd = kargs[_.KEY_CWD]
+        res_remote = git(_.GIT_CMD_REMOTE, cwd=cwd)
+        remotes = res_remote.stdout.decode(_.UTF_8).split_lines()
+        for remote in get_priority_git_remotes():
+            if remote in remotes:
+                git(_.GIT_CMD_PUSH, remote, '--all', cwd=cwd)
+                return
+        logging.warning('{}: repository not pushed'.format(cwd))
+    except Exception as e:
+        logging.error('{}: {}'.format(cwd, e))
+
+def git_tb_push():
+    git_tb_all(WORKSPACE, git_tb_push_helper)
+
+def git_tb_backup():
+    raise RuntimeError(_.ERR_NOT_IMPLEMENTED)
+
+def git_tb_restore():
+    raise RuntimeError(_.ERR_NOT_IMPLEMENTED)
+
+def git_tb_args():
+    parser = argparse.ArgumentParser(
+            prog=_.PROG,
+            description='git toolbox')
+    parser.add_argument(
+            '-d', '--debug', help='Enable debug log level',
+            action='store_true', dest='is_log_debug', default=False)
+    parser.add_argument(
+            '-v', '--verbose', help='Enable trace log level',
+            action='store_true', dest='is_log_verbose', default=False)
+    parser.add_argument(
+            '-V', '--version', help='Show the tool version',
+            action='store_true', dest='version', default='v1.0.0')
+    subparsers = parser.add_subparsers(dest='command')
+
+    print_parser = subparsers.add_parser(_.SUBCMD_LIST, help='List the repositories detected in the workspace')
+
+    check_parser = subparsers.add_parser(_.SUBCMD_CHECK, help='Check repositories for pending local changes')
+
+    pull_parser = subparsers.add_parser(_.SUBCMD_PULL, help='Run pull for all the repositories in the workspace')
+
+    push_parser = subparsers.add_parser(_.SUBCMD_PUSH, help='Run push for all the repositories for upstream, or origin (the first found)')
+
+    backup_parser = subparsers.add_parser(_.SUBCMD_BACKUP, help='Generate a "workspace.yaml" file that can be used to recover the workspace state')
+    backup_parser.add_argument('name', help='Name of the item')
+
+    restore_parser = subparsers.add_parser(_.SUBCMD_RESTORE, help='Restore from a "workspace.yaml" file all the repositories')
+    restore_parser.add_argument('name', help='Name of the item')
+
+    return parser
+
+def setup_logs(args):
+    logging.basicConfig(level=logging.INFO)
+    if args.is_log_verbose:
+        logging.basicConfig(level=logging.TRACE)
+        logging.info('setting TRACE log level')
+    if args.is_log_debug:
+        logging.basicConfig(level=logging.DEBUG)
+        logging.info('setting DEBUG log level')
+
+def get_subcommands_map():
+    return {
+        _.SUBCMD_LIST: git_tb_list,
+        _.SUBCMD_CHECK: git_tb_check,
+        _.SUBCMD_PULL: git_tb_pull,
+        _.SUBCMD_PUSH: git_tb_push,
+        _.SUBCMD_BACKUP: git_tb_backup,
+        _.SUBCMD_RESTORE: git_tb_restore,
+    }
+
+def main():
+    SUBCOMMANDS = get_subcommands_map()
+    args = git_tb_args().parse_args()
+    setup_logs(args)
+    subcommand = args.command
+    if not subcommand in SUBCOMMANDS:
+        git_tb_args().print_help()
+        sys.exit(1)
+    return SUBCOMMANDS[subcommand]()
+
+if __name__ == '__main__':
+    sys.exit(main())
 
