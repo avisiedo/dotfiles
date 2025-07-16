@@ -5,16 +5,21 @@ import argparse
 import logging
 import subprocess
 
+from datetime import datetime
+import yaml
+
 WORKSPACE = os.environ.get('WORKSPACE', os.path.join(os.environ['HOME'], 'workspace'))
+_ARGS = None
 
 class _:
     """Encapsulate the constants"""
     PROG = 'py-git-tb'
     KEY_CWD = 'cwd'
+    KEY_CONTEXT = 'context'
     GIT = 'git'
     HIDDEN_GIT = '.git'
     UTF_8 = 'utf-8'
-    # Environmnet variable with the ordered list of priorities for upstream
+    # Environment variable with the ordered list of priorities for upstream
     # in the workspace; by default is set to 
     # "upstream,origin" => ['upstream', 'origin']
     ENV_GIT_REMOTES = 'GIT_REMOTES'
@@ -38,6 +43,11 @@ class _:
     # git commands
     GIT_CMD_REMOTE = 'remote'
     GIT_CMD_PUSH = 'push'
+    GIT_CMD_PULL = 'pull'
+    GIT_CMD_CLONE = 'clone'
+    GIT_CMD_REMOTE = 'remote'
+    GIT_CMD_STATUS = 'status'
+    GIT_CMD_BRANCH = 'branch'
 
     # Ignore node_modules which use to have a huge directory structure
     FILTER_NODE_MODULES = 'node_modules'
@@ -53,13 +63,9 @@ class _:
     CHECK_UNKNOWN = 'unknown'
     CHECK_NO_TRACKED = 'no-tracked'
     CHECK_DELETED = 'deleted'
+    CHECK_NO_REMOTES = 'no-remotes'
 
     ERR_NOT_IMPLEMENTED = 'Not Implemented'
-
-    
-
-def git_tb_help():
-    pass
 
 def git(*args, **kargs):
     """Wrapper to invoke git commands"""
@@ -90,11 +96,35 @@ def git_tb_list_helper(*args, **kargs):
 def git_tb_list():
     git_tb_all(WORKSPACE, git_tb_list_helper)
 
-def git_tb_check_analyze(output: str) -> dict:
-    """Analyze the output from git_tb_check_helper"""
-    summary={}
+def git_tb_check_print(summary:dict):
+    for key, value in summary.items():
+        if key == _.CHECK_ADDED:
+            print('added files: {}'.format(value))
+        elif key == _.CHECK_MODIFIED:
+            print('modified files: {}'.format(value))
+        elif key == _.CHECK_DELETED:
+            print('deleted files: {}'.format(value))
+        elif key == _.CHECK_NO_TRACKED:
+            print('no tracked files: {}'.format(value))
+        elif key == _.CHECK_UNKNOWN:
+            print('unknown: {}'.format(value))
+        elif key == _.CHECK_NO_REMOTES:
+            if value:
+                print('has no remotes: {}'.format(value))
+        else:
+            print('warning: unexpected key {} with value {}'.format(key, value))
+
+def git_tb_check_proc_general(summary: dict, cwd: str):
+    """
+    General checks based on 'git status --ignore-submodules --porcelain'
+
+    @param summary Dictionary where to update the different keys about the states.
+    @param cwd is the current working directory for the git repository to analyze.
+    """
+    result = git(_.GIT_CMD_STATUS, '--ignore-submodules', '--porcelain', cwd=cwd, capture_output=True)
+    output = result.stdout.decode(_.UTF_8)
     if output == '':
-        return summary
+        return
     lines = output.split('\n')
     if len(lines) == 0:
         return summary
@@ -111,26 +141,40 @@ def git_tb_check_analyze(output: str) -> dict:
             summary[_.CHECK_NO_TRACKED] = summary.get(_.CHECK_NO_TRACKED, 0) + 1
         else:
             summary[_.CHECK_UNKNOWN] = summary.get(_.CHECK_UNKNOWN, 0) + 1
-    return summary
 
-def git_tb_check_print(summary:dict):
-    for key, value in summary.items():
-        if key == _.CHECK_ADDED:
-            print('added files: {}'.format(value))
-        elif key == _.CHECK_MODIFIED:
-            print('modified files: {}'.format(value))
-        elif key == _.CHECK_DELETED:
-            print('deleted files: {}'.format(value))
-        elif key == _.CHECK_NO_TRACKED:
-            print('no tracked files: {}'.format(value))
-        elif key == _.CHECK_UNKNOWN:
-            print('unknown: {}'.format(value))
+def git_tb_check_proc_remotes(summary: dict, cwd: str):
+    """
+    Verify if the repository has any remote, and if the remotes are on sync.
+
+    @param summary is set _.CHECK_NO_REMOTES when no remotes, and
+    _.CHECK_NO_ON_SYNC_REMOTES when some local branch is not on sync with the
+    tracked remote branch, or no remote branch associated.
+    @param cwd is the path to the git repo being analyzed.
+    """
+    remotes = git_read_remotes(cwd)
+    if remotes is None or len(remotes) == 0:
+        summary[_.CHECK_NO_REMOTES] = True
+
+    # TODO Verify if local branches are on sync with remote ones
+    if _ARGS.is_checking_remote:
+        # TODO Check local branch are on sync with remotes
+        pass
+
+    # TODO Remove from the list of branches to check the ones that currently
+    #      are merged
+    result = git(_.GIT_CMD_BRANCH, '--merged', cwd=cwd, capture_output=True)
+    pass
 
 def git_tb_check_helper(*args, **kargs):
-    result = git('status', '--ignore-submodules', '--porcelain', cwd=kargs[_.KEY_CWD], capture_output=True)
-    summary = git_tb_check_analyze(result.stdout.decode(_.UTF_8))
-    result = git('branch', '--no-merged', cwd=kargs[_.KEY_CWD], capture_output=True)
-    if len(summary) > 0:
+    _cwd = kargs[_.KEY_CWD]
+    summary = {}
+
+    # Analyze current repository
+    git_tb_check_proc_general(summary, _cwd)
+    git_tb_check_proc_remotes(summary, _cwd)
+
+    # Print report for the current repository if exists any indicator
+    if len(summary.keys()) > 0:
         logging.info('repository at: "{}"'.format(kargs[_.KEY_CWD]))
         git_tb_check_print(summary)
 
@@ -139,7 +183,7 @@ def git_tb_check():
 
 def git_tb_pull_helper(*args, **kargs):
     logging.info('repository at: "{}"'.format(kargs[_.KEY_CWD]))
-    git('pull', *args, **kargs)
+    git(_.GIT_CMD_PULL, *args, **kargs)
 
 def git_tb_pull(*args, **kargs):
     git_tb_all(WORKSPACE, git_tb_pull_helper)
@@ -164,11 +208,72 @@ def git_tb_push_helper(*args, **kargs):
 def git_tb_push():
     git_tb_all(WORKSPACE, git_tb_push_helper)
 
+def git_remote_list(path):
+    return git(_.GIT_CMD_REMOTE, cwd=path).stdout.decode(_.UTF_8).splitlines()
+
+def git_read_remotes(path: str) -> list:
+    try:
+        data = []
+        for key in git_remote_list(path):
+            url = git(_.GIT_CMD_REMOTE, 'get-url', key, cwd=path).stdout.decode(_.UTF_8).split()[0]
+            data.append({key: url})
+        return data
+    except Exception as e:
+        logging.warning(e)
+        return []
+
+def helper_path_to_name(path:str) -> str:
+    return os.path.realpath(path).replace('/','-').replace(' ', '-')
+
+def git_tb_backup_helper(*args, **kargs):
+    context = kargs[_.KEY_CONTEXT]
+    workspace_name = helper_path_to_name(os.path.realpath(WORKSPACE)) + '-'
+    name = helper_path_to_name(os.path.realpath(kargs[_.KEY_CWD]))
+    name = name.removeprefix(workspace_name)
+    path = os.path.realpath(kargs[_.KEY_CWD])
+    remotes = git_read_remotes(path)
+    if remotes is None or len(remotes) == 0:
+        logging.warning('repository \'{}\' at: \'{}\' without remotes'.format(name, path))
+    repo = {'name': name, 'path': path, 'remotes': remotes}
+    context['repositories'].append(repo)
+
 def git_tb_backup():
-    raise RuntimeError(_.ERR_NOT_IMPLEMENTED)
+    current_data = {}
+    if os.path.exists(WORKSPACE + '/' + 'workspace.yaml'):
+        with open(WORKSPACE + '/' + 'workspace.yaml', 'rt') as fi:
+            current_data = yaml.safe_load(fi)
+    data = {"base": WORKSPACE,
+            "upstream-order": os.environ.get(_.ENV_GIT_REMOTES, _.GIT_REMOTES_DEFAULT).split(','),
+            "modified-at": datetime.now().isoformat(),
+            "repositories": [],
+    }
+    git_tb_all(WORKSPACE, git_tb_backup_helper, context=data)
+    data.update(current_data)
+    with open(WORKSPACE + '/' + 'workspace.yaml', 'wt') as fo:
+        fo.write('# file: workspace.yaml\n')
+        fo.write('# generated by: git-tb backup\n')
+        fo.write('---\n')
+        yaml.safe_dump(data, fo)
 
 def git_tb_restore():
-    raise RuntimeError(_.ERR_NOT_IMPLEMENTED)
+    with open(WORKSPACE + '/' + 'workspace.yaml', 'rt') as fi:
+        data = yaml.safe_load(fi)
+    if 'modified-at' in data:
+        print('last modified on: {}'.data['modified-at'])
+    os.environ[_.ENV_GIT_REMOTES] = _.GIT_REMOTES_DEFAULT
+    for repo in data['repositories']:
+        if not repo.get('path', None):
+            continue
+        if not repo['remotes']:
+            logging.warning('repository {} without remotes: passing'.format(WORKSPACE + '/' + name))
+        for key, value in repo['remotes'].items():
+            if not os.path.exists(WORKSPACE + '/' + repo['path']):
+                _cwd = os.path.dirname(WORKSPACE + '/' + repo['path'])
+                if not os.path.exist(_cwd):
+                    os.path.mkdir(_cwd)
+                git(_.GIT_CMD_CLONE, '--origin', cwd=WORKSPACE)
+            else:
+                git(_.GIT_CMD_REMOTE, 'add', '--origin', cwd=WORKSPACE + '/' + path)
 
 def git_tb_args():
     parser = argparse.ArgumentParser(
@@ -186,17 +291,16 @@ def git_tb_args():
     subparsers = parser.add_subparsers(dest='command')
 
     print_parser = subparsers.add_parser(_.SUBCMD_LIST, help='List the repositories detected in the workspace')
-
     check_parser = subparsers.add_parser(_.SUBCMD_CHECK, help='Check repositories for pending local changes')
+    check_parser.add_argument(
+            '--no-remote', help='Do not check remote sync',
+            action='store_false', dest='is_checking_remote', default=True)
 
     pull_parser = subparsers.add_parser(_.SUBCMD_PULL, help='Run pull for all the repositories in the workspace')
-
     push_parser = subparsers.add_parser(_.SUBCMD_PUSH, help='Run push for all the repositories for upstream, or origin (the first found)')
+    backup_parser = subparsers.add_parser(_.SUBCMD_BACKUP, help='Generate a \'workspace.yaml\' file that can be used to recover the workspace state')
 
-    backup_parser = subparsers.add_parser(_.SUBCMD_BACKUP, help='Generate a "workspace.yaml" file that can be used to recover the workspace state')
-    backup_parser.add_argument('name', help='Name of the item')
-
-    restore_parser = subparsers.add_parser(_.SUBCMD_RESTORE, help='Restore from a "workspace.yaml" file all the repositories')
+    restore_parser = subparsers.add_parser(_.SUBCMD_RESTORE, help='Restore from a \'workspace.yaml\' file all the repositories')
     restore_parser.add_argument('name', help='Name of the item')
 
     return parser
@@ -221,11 +325,13 @@ def get_subcommands_map():
     }
 
 def main():
+    global _ARGS
     SUBCOMMANDS = get_subcommands_map()
-    args = git_tb_args().parse_args()
-    setup_logs(args)
-    subcommand = args.command
+    _ARGS = git_tb_args().parse_args()
+    setup_logs(_ARGS)
+    subcommand = _ARGS.command
     if not subcommand in SUBCOMMANDS:
+        print('''git toolbox: helper to keep your git repositories in good shape\n''')
         git_tb_args().print_help()
         sys.exit(1)
     return SUBCOMMANDS[subcommand]()
