@@ -125,14 +125,6 @@ repositories:
   remotes:
   - origin: https://github.com/microsoft/playwright.git
   - upstream: git@github.com:little-engineer-2025/playwright.git
-- name: playwright-python-new
-  path: /home/avisiedo/workspace/playwright-python-new
-  remotes:
-  - origin: https://github.com/microsoft/playwright-python.git
-- name: playwright-python
-  path: /home/avisiedo/workspace/playwright-python
-  remotes:
-  - origin: https://github.com/microsoft/playwright-python.git
 - name: blog
   path: /home/avisiedo/workspace/blog
   remotes:
