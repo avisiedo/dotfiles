@@ -315,6 +315,7 @@ def git_tb_backup_helper(*args, **kargs):
     name = helper_path_to_name(os.path.realpath(kargs[_.KEY_CWD]))
     name = name.removeprefix(workspace_name)
     path = os.path.realpath(kargs[_.KEY_CWD])
+    path = path.removeprefix(WORKSPACE + '/')
     remotes = git_read_remotes(path)
     if remotes is None or len(remotes) == 0:
         logging.warning('repository \'{}\' at: \'{}\' without remotes'.format(name, path))
@@ -343,21 +344,45 @@ def git_tb_restore():
     with open(WORKSPACE + '/' + 'workspace.yaml', 'rt') as fi:
         data = yaml.safe_load(fi)
     if 'modified-at' in data:
-        print('last modified on: {}'.data['modified-at'])
-    os.environ[_.ENV_GIT_REMOTES] = _.GIT_REMOTES_DEFAULT
+        print('last modified on: {}'.format(data['modified-at']))
+    os.environ[_.ENV_GIT_REMOTES] = ','.join(data.get('upstream-order', _.GIT_REMOTES_DEFAULT.split(',')))
+
     for repo in data['repositories']:
-        if not repo.get('path', None):
+        # Sanitize attributes
+        name = repo.get('name', None)
+        if not name:
+            continue
+        path = repo.get('path', None)
+        if not path:
+            continue
+        if path[0] == '/':
+            logging.warning('ignoring repo: repo {} has an absolute path {}'.format(name, path))
+            continue
+        if path[0:1] == '..':
+            logging.warning('ignoring repo: repo {} has a relative path {} that reference updir ../'.format(name, path))
+            continue
+        if '/../' in path:
+            logging.warning('ignoring repo: repo {} has a relative path {} with updir reference /../'.format(name, path))
             continue
         if not repo['remotes']:
-            logging.warning('repository {} without remotes: passing'.format(WORKSPACE + '/' + name))
-        for key, value in repo['remotes'].items():
-            if not os.path.exists(WORKSPACE + '/' + repo['path']):
-                _cwd = os.path.dirname(WORKSPACE + '/' + repo['path'])
-                if not os.path.exist(_cwd):
-                    os.path.mkdir(_cwd)
-                git(_.GIT_CMD_CLONE, '--origin', cwd=WORKSPACE)
-            else:
-                git(_.GIT_CMD_REMOTE, 'add', '--origin', cwd=WORKSPACE + '/' + path)
+            logging.warning('ignoring repo: repo {} does not have remotes'.format(name))
+            continue
+
+        logging.info('restoring repo {} at {}'.format(name, path))
+
+        target_path = WORKSPACE + '/' + path
+        parent_target_path = os.path.dirname(target_path)
+        if not os.path.exists(parent_target_path):
+            os.mkdir(parent_target_path)
+
+        for remote in repo['remotes']:
+            for key, value in remote.items():
+                if not os.path.exists(WORKSPACE + '/' + repo['path']):
+                    # print("git(_.GIT_CMD_CLONE, '--origin', {}, {}, {}, cwd=parent_target_path)".format(key, value, target_path))
+                    git(_.GIT_CMD_CLONE, '--origin', key, value, target_path, cwd=parent_target_path)
+                else:
+                    # print("git(_.GIT_CMD_REMOTE, 'add', {}, {}, cwd=target_path)".format(key, value))
+                    git(_.GIT_CMD_REMOTE, 'add', key, value, cwd=target_path)
 
 def git_tb_args():
     parser = argparse.ArgumentParser(
@@ -383,9 +408,7 @@ def git_tb_args():
     pull_parser = subparsers.add_parser(_.SUBCMD_PULL, help='Run pull for all the repositories in the workspace')
     push_parser = subparsers.add_parser(_.SUBCMD_PUSH, help='Run push for all the repositories for upstream, or origin (the first found)')
     backup_parser = subparsers.add_parser(_.SUBCMD_BACKUP, help='Generate a \'workspace.yaml\' file that can be used to recover the workspace state')
-
     restore_parser = subparsers.add_parser(_.SUBCMD_RESTORE, help='Restore from a \'workspace.yaml\' file all the repositories')
-    restore_parser.add_argument('name', help='Name of the item')
 
     return parser
 
