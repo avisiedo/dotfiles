@@ -49,6 +49,7 @@ class _:
     GIT_CMD_STATUS = 'status'
     GIT_CMD_BRANCH = 'branch'
     GIT_CMD_REV_PARSE = 'rev-parse'
+    GIT_CMD_FETCH = 'fetch'
 
     # Ignore node_modules which use to have a huge directory structure
     FILTER_NODE_MODULES = 'node_modules'
@@ -342,14 +343,14 @@ def git_tb_backup():
 
 def is_invalid_repo_path(path:str) -> bool:
     if not path:
-        return False
+        return True
     if path[0] == '/':
-        return False
-    if path[0:1] == '..':
-        return False
+        return True
+    if path[0:2] == '..':
+        return True
     if '/../' in path:
-        return False
-    return True
+        return True
+    return False
 
 def git_tb_restore():
     with open(WORKSPACE + '/' + 'workspace.yaml', 'rt') as fi:
@@ -364,7 +365,7 @@ def git_tb_restore():
         if not name:
             continue
         path = repo.get('path', None)
-        if is_invalid_repo_path(path)
+        if is_invalid_repo_path(path):
             logging.warning('ignoring repo: repo {} has invalid path {}'.format(name, path))
             continue
         if not repo['remotes']:
@@ -383,6 +384,7 @@ def git_tb_restore():
                     git(_.GIT_CMD_CLONE, '--origin', key, value, target_path, cwd=parent_target_path)
                 else:
                     git(_.GIT_CMD_REMOTE, 'add', key, value, cwd=target_path)
+            git(_.GIT_CMD_FETCH, '--all', cwd=target_path)
 
 def git_tb_args():
     parser = argparse.ArgumentParser(
