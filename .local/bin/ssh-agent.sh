@@ -17,7 +17,10 @@ start_ssh_agent() {
 
     (umask 066; ssh-agent > "${HOME}/.ssh-agent")
     eval "$(<"${HOME}/.ssh-agent")" >/dev/null
-    ssh-add -t 3600
+
+    if tty -s &>/dev/null; then
+        ssh-add -t 3600
+    fi
 }
 
 main() {
