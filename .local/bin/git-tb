@@ -77,7 +77,9 @@ def git(*args, **kargs):
         raise KeyError("'{}'".format(_.KEY_CWD))
     if not _.SUBP_CAPTURE_OUTPUT in kargs:
         kargs[_.SUBP_CAPTURE_OUTPUT] = True
-    return subprocess.run([_.GIT, *args], **kargs)
+    _cmd = [_.GIT, *args]
+    result = subprocess.run(_cmd, **kargs)
+    return result
 
 def git_tb_all(basedir, f, *args, **kargs):
     for item in os.walk(basedir, topdown=True):
@@ -352,6 +354,21 @@ def is_invalid_repo_path(path:str) -> bool:
         return True
     return False
 
+def git_tb_restore_helper(name, path, repo):
+    logging.info('restoring repo {} at {}'.format(name, path))
+    target_path = WORKSPACE + '/' + path
+    parent_target_path = os.path.dirname(target_path)
+    if not os.path.exists(parent_target_path):
+        os.mkdir(parent_target_path)
+
+    for remote in repo['remotes']:
+        for key, value in remote.items():
+            if not os.path.exists(target_path):
+                git(_.GIT_CMD_CLONE, '--origin', key, value, target_path, cwd=parent_target_path, check=True)
+            else:
+                git(_.GIT_CMD_REMOTE, 'add', key, value, cwd=target_path, check=False)
+        git(_.GIT_CMD_FETCH, '--all', cwd=target_path, check=True)
+
 def git_tb_restore():
     with open(WORKSPACE + '/' + 'workspace.yaml', 'rt') as fi:
         data = yaml.safe_load(fi)
@@ -372,19 +389,10 @@ def git_tb_restore():
             logging.warning('ignoring repo: repo {} does not have remotes'.format(name))
             continue
 
-        logging.info('restoring repo {} at {}'.format(name, path))
-        target_path = WORKSPACE + '/' + path
-        parent_target_path = os.path.dirname(target_path)
-        if not os.path.exists(parent_target_path):
-            os.mkdir(parent_target_path)
-
-        for remote in repo['remotes']:
-            for key, value in remote.items():
-                if not os.path.exists(WORKSPACE + '/' + repo['path']):
-                    git(_.GIT_CMD_CLONE, '--origin', key, value, target_path, cwd=parent_target_path)
-                else:
-                    git(_.GIT_CMD_REMOTE, 'add', key, value, cwd=target_path)
-            git(_.GIT_CMD_FETCH, '--all', cwd=target_path)
+        try:
+            git_tb_restore_helper(name, path, repo)
+        except Exception as e:
+            logging.error(e)
 
 def git_tb_args():
     parser = argparse.ArgumentParser(
