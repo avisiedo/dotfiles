@@ -114,12 +114,12 @@ repositories:
   remotes:
   - downstream: https://github.com/chainguard-dev/osquery-defense-kit.git
   - upstream: git@github.com:little-engineer-2025/osquery-defense-kit.git
-- name: go-todo-backend
-  path: go-todo/backend
+- name: todo-backend
+  path: todo/backend
   remotes:
   - origin: git@github.com:little-engineer-2025/go-todo-backend.git
-- name: go-todo-frontend
-  path: go-todo/frontend
+- name: todo-frontend
+  path: todo/frontend
   remotes:
   - origin: git@github.com:little-engineer-2025/go-todo-frontend.git
 - name: win11-vm-arm
