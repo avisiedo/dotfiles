@@ -4,5 +4,7 @@ function dotfiles {
 export -f dotfiles
 
 dotfiles config status.showUntrackedFiles no
-source /usr/share/bash-completion/completions/git
-__git_complete dotfiles __git_main
+[ ! -e "/usr/share/bash-completion/completions/git" ] || {
+    source /usr/share/bash-completion/completions/git
+    __git_complete dotfiles __git_main
+}
