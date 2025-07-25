@@ -15,7 +15,7 @@ start_ssh_agent() {
     ssh-add -l &>/dev/null; ret="$?"
     [ "$ret" != 2 ] && return $ret
 
-    (umask 066; ssh-agent > "${HOME}/.ssh-agent")
+    (umask 067; ssh-agent > "${HOME}/.ssh-agent")
     eval "$(<"${HOME}/.ssh-agent")" >/dev/null
 
     if tty -s &>/dev/null; then
@@ -27,7 +27,7 @@ main() {
     start_ssh_agent
 }
 
-if [ "${BASH_SOURCE[0]}" == "$0" ]; then
+if [ "${BASH_SOURCE[0]}" == "$(which "$0")" ]; then
     main "$@"
 fi
 
