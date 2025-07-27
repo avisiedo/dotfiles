@@ -2,7 +2,7 @@
 
 if tty -s &>/dev/null; then
     source "$(which ssh-agent.sh)"
-    start_ssh_agent
+    ssh_agent_start
 fi
 
 export SSH_ASKPASS=/usr/libexec/openssh/ssh-askpass

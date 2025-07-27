@@ -3,8 +3,9 @@
 # see: links "https://rabexec.org/posts/pitfalls-of-ssh-agents"
 
 # @brief start the ssh-agent and use it in a "safe" way.
-start_ssh_agent() {
+ssh_agent_start() {
     local ret
+    local timelife=300
 
     ssh-add -l &>/dev/null; ret="$?"
     [ "$ret" != 2 ] && return $ret
@@ -19,12 +20,12 @@ start_ssh_agent() {
     eval "$(<"${HOME}/.ssh-agent")" >/dev/null
 
     if tty -s &>/dev/null; then
-        ssh-add -t 3600
+        ssh-add -t ${timelife}
     fi
 }
 
 main() {
-    start_ssh_agent
+    ssh_agent_start
 }
 
 if [ "${BASH_SOURCE[0]}" == "$(which "$0")" ]; then
