@@ -91,4 +91,4 @@
 [gpg]
 	format = ssh
 [http]
-	proxy = http://localhost:3128
+	# proxy = http://localhost:3128
