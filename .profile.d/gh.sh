@@ -1,3 +1,6 @@
+##
+# Add completion for github cli tool
+##
 if tty -s &>/dev/null && which gh &>/dev/null; then
   source <(gh completion -s "$(basename "$SHELL")")
   # Only load if permissions are 0400
