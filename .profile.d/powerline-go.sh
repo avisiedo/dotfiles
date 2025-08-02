@@ -1,6 +1,10 @@
 # https://github.com/justjanne/powerline-go
-# Require: dnf install powerline-go powerline-font
-function _update_go_ps1() {
+# Requires:
+#   rpm based: dnf install powerline-go powerline-font
+#   deb based: apt install powerline-go
+#   macos: brew install powerline-go
+
+function _update_ps1_powerline() {
     # For podman we can check if the context is a container by checking
     # /run/.containerenv
     #
@@ -25,5 +29,5 @@ function _update_go_ps1() {
 }
 
 if tty -s &>/dev/null && [ "${TERM}" != "linux" ] && [ -f "$(which powerline-go 2>/dev/null)" ]; then
-    PROMPT_COMMAND="_update_go_ps1; ${PROMPT_COMMAND}"
+    PROMPT_COMMAND="_update_ps1_powerline; ${PROMPT_COMMAND}"
 fi

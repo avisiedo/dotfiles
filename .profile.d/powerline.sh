@@ -1,7 +1,7 @@
 # https://github.com/justjanne/powerline-go
 # Require: powerline
 #   pacman -Sy extras/powerline
-function _update_ps1() {
+function _update_ps1_powerline_go() {
     # For podman we can check if the context is a container by checking
     # /run/.containerenv
     #
@@ -28,7 +28,7 @@ function _update_ps1() {
 if tty -s &>/dev/null; then
     if [ "${TERM}" != "linux" ]; then
         if which powerline &>/dev/null; then
-            # PROMPT_COMMAND="_update_ps1; ${PROMPT_COMMAND}"
+            # PROMPT_COMMAND="_update_ps1_powerline_go; ${PROMPT_COMMAND}"
             [ ! -e "/usr/share/powerline/bindings/shell/powerline.sh" ] || source "/usr/share/powerline/bindings/shell/powerline.sh"
         fi
     fi
