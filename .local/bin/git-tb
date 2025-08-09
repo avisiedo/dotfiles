@@ -14,7 +14,7 @@ _ARGS = None
 
 class _:
     """Encapsulate the constants"""
-    PROG = 'py-git-tb'
+    PROG = 'git-tb'
     KEY_CWD = 'cwd'
     KEY_CONTEXT = 'context'
     GIT = 'git'
