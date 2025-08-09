@@ -451,7 +451,7 @@ def main():
     if not subcommand in SUBCOMMANDS:
         print('''git toolbox: helper to keep your git repositories in good shape\n''')
         git_tb_args().print_help()
-        sys.exit(1)
+        return 1
     return SUBCOMMANDS[subcommand]()
 
 if __name__ == '__main__':
