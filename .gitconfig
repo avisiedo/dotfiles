@@ -92,3 +92,5 @@
 	format = ssh
 [http]
 	# proxy = http://localhost:3128
+[pull]
+	rebase = true
