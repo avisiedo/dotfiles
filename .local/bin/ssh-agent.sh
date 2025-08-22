@@ -5,7 +5,7 @@
 # @brief start the ssh-agent and use it in a "safe" way.
 ssh_agent_start() {
     local ret
-    local timelife=300
+    local timelife=600
 
     ssh-add -l &>/dev/null; ret="$?"
     [ "$ret" != 2 ] && return $ret
