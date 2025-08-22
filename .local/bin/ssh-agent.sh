@@ -28,7 +28,8 @@ main() {
     ssh_agent_start
 }
 
-if [ "${BASH_SOURCE[0]}" == "$(which "$0")" ]; then
+if [ "${BASH_SOURCE[0]}" == "$(which -- "$0" 2>/dev/null)" ]; then
     main "$@"
+    exit $?
 fi
 
