@@ -7,4 +7,5 @@ if tty -s &>/dev/null; then
   if [ "" != "$(which nvim 2>/dev/null)" ]; then
     alias vi='$(which nvim 2>/dev/null)'
   fi
+  alias ramalama-run='ramalama run --pull never --network host deepseek-coder:33b'
 fi
