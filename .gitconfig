@@ -9,13 +9,23 @@
 #
 # Use ssh key to authorize and signing
 #   https://stackoverflow.com/questions/72844616/how-do-i-sign-git-commits-using-my-existing-ssh-key
+#   https://developers.yubico.com/SSH/Securing_git_with_SSH_and_FIDO2.html
+#
+# Check GitHub fingerprint first time you access at:
+#   https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints
+#
+# Secure your commits by passwordless at:
+#   https://developers.yubico.com/SSH/Securing_git_with_SSH_and_FIDO2.html
+#
 [user]
 # Please adapt and uncomment the following lines:
 	name = Alejandro Visiedo
 	email = learning.little.engineer.2025.1@gmail.com
-	signingkey = ~/.ssh/id_ed25519.pub
+	signingkey = ~/.ssh/id_ed25519_sk_git_signing.pub
 [commit]
 	gpgsign = true
+[tag]
+	forcesignannotated = true
 [apply]
 	whitespace = strip
 [color]
@@ -87,10 +97,12 @@
 [credential "https://github.com"]
 	helper = !/usr/bin/gh auth git-credential
 [core]
-	editor = vim
+    editor = vim
 [gpg]
 	format = ssh
 [http]
 	# proxy = http://localhost:3128
 [pull]
 	rebase = true
+[gpg "ssh"]
+	allowedSignersFile = /var/home/avisiedo/.ssh/allowed_signers
