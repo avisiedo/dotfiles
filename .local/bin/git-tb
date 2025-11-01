@@ -546,11 +546,10 @@ def git_tb_restore_helper(name, path, repo):
                     value,
                     target_path,
                     cwd=parent_target_path,
-                    check=True,
                 )
             else:
-                git(_.GIT_CMD_REMOTE, "add", key, value, cwd=target_path, check=False)
-        git(_.GIT_CMD_FETCH, "--all", cwd=target_path, check=True)
+                git(_.GIT_CMD_REMOTE, "add", key, value, cwd=target_path)
+        git(_.GIT_CMD_FETCH, "--all", cwd=target_path)
 
 
 def git_tb_restore():
