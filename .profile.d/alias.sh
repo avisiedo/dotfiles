@@ -20,9 +20,9 @@ if tty -s &>/dev/null; then
   fi
 
   # Firefox
-  if flatpak info org.mozilla.firefox; then
+  if flatpak info org.mozilla.firefox &>/dev/null; then
     alias firefox='flatpak run org.mozilla.firefox'
-  elif flatpak-spawn --host flatpak info org.mozilla.firefox; then
+  elif flatpak-spawn --host flatpak info org.mozilla.firefox &>/dev/null; then
     alias firefox='flatpak-spawn --host flatpak run org.mozilla.firefox'
   fi
 fi
