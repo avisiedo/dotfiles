@@ -91,7 +91,7 @@
     mail = send-email --compose
     autobuild = push autobuild +HEAD:master
     w = status --branch --short --untracked-files=no
-    wut = status --branch --short --untracked-files=normal
+    wu = status --branch --short --untracked-files=normal
 
 [init]
 	defaultBranch = main
