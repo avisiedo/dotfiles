@@ -1,0 +1,14 @@
+nmcli con show bridge-bridge141 &>/dev/null || {
+  nmcli con add type bridge ifname bridge141
+  nmcli con add type bridge-slave ifname eth141 master bridge141 
+  nmcli con up bridge-bridge141 
+  nmcli con up bridge-slave-eth141 
+}
+
+nmcli device modify bridge141 \
+  ipv4.addresses 192.168.141.1/24 \
+  ipv4.method manual \
+  ipv4.ignore-auto-dns yes \
+  ipv4.ignore-auto-routes yes \
+  autoconnect yes &>/dev/null
+
