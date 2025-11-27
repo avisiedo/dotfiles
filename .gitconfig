@@ -23,9 +23,9 @@
 	email = learning.little.engineer.2025.1@gmail.com
 	signingkey = ~/.ssh/id_ed25519_sk_git_signing.pub
 [commit]
-	gpgsign = true
+	gpgSign = true
 [tag]
-	forcesignannotated = true
+	forceSignAnnotated = true
 [apply]
 	whitespace = strip
 [color]
@@ -106,4 +106,4 @@
 [pull]
 	rebase = true
 [gpg "ssh"]
-	allowedSignersFile = /var/home/avisiedo/.ssh/allowed_signers
+	allowedSignersFile = ~/.ssh/allowed_signers
