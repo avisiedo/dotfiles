@@ -21,30 +21,35 @@ set encoding=utf-8
 " Set the file types
 autocmd FileType go setlocal tabstop=4 shiftwidth=4 expandtab
 
-" Configure NERDTree
-" https://github.com/preservim/nerdtree?tab=readme-ov-file#frequently-asked-questions
-nnoremap <leader>n :NERDTreeFocus<CR>
-nnoremap <C-n> :NERDTree<CR>
-nnoremap <C-t> :NERDTreeToggle<CR>
-nnoremap <C-f> :NERDTreeFind<CR>
-" Start NERDTree when Vim is started without file arguments.
-autocmd StdinReadPre * let s:std_in=1
-autocmd VimEnter * if argc() == 0 && !exists('s:std_in') | NERDTree | endif
-" Exit Vim if NERDTree is the only window remaining in the only tab.
-autocmd BufEnter * if tabpagenr('$') == 1 && winnr('$') == 1 && exists('b:NERDTree') && b:NERDTree.isTabTree() | call feedkeys(":quit\<CR>:\<BS>") | endif
-
+" see: https://github.com/rockerBOO/awesome-neovim?tab=readme-ov-file
 " Install plugins using vim-plug
 " Run: nvim -c PlugInstall -c q -c q --headless
 call plug#begin()
 " Colorschema plugins
-" Plug 'tjdevries/colorbuddy.nvim'
-" Plug 'lalitmee/cobalt2.nvim'
-Plug 'morhetz/gruvbox'
-" Plug 'tpope/vim-fugitive'
-Plug 'preservim/nerdtree'
+Plug 'ellisonleao/gruvbox.nvim'
+
+" Tree explorer
+Plug 'MunifTanjim/nui.nvim'
+Plug 'nvim-lua/plenary.nvim'
+
+Plug 'nvim-tree/nvim-web-devicons'
+Plug 'antosha417/nvim-lsp-file-operations'
+
+Plug 'nvim-neo-tree/neo-tree.nvim'
+
+" keybinding
+Plug 'folke/which-key.nvim'
+
+" Fuzzy Finder
+Plug 'junegunn/fzf', { 'do': { -> fzf#install() } }
+Plug 'junegunn/fzf.vim'
+
 " Plug 'kien/ctrlp.vim'
 " Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
 call plug#end()
+
+" Configure Tree Explorer keymaps
+nmap <C-t> :Neotree filesystem reveal left toggle<cr>
 
 " Configure vim-go
 let g:go_fmt_command = "goimports"
@@ -53,6 +58,8 @@ let g:go_list_type = "quickfix"
 let g:go_term_enabled = 1
 
 " Set colorscheme
+" https://github.com/ellisonleao/gruvbox.nvim?tab=readme-ov-file#basic-usage
+set background=dark
 colorscheme gruvbox
 
 set hidden
@@ -83,22 +90,21 @@ set shortmess+=c
 " Use <c-space> to trigger completion.
 " inoremap <silent><expr> <c-space> coc#refresh()
 
-
+" Fuzzy search
+" https://github.com/junegunn/fzf.vim
+let g:fzf_vim = {}
+let g:fzf_vim.preview_window = ['right,50%', 'ctrl-/']
 
 let g:fzf_layout = { 'up': '~90%', 'window': { 'width': 0.8, 'height': 0.8, 'yoffset': 0.5, 'xoffset': 0.5 } }
 let $FZF_DEFAULT_OPTS = '--layout=reverse --info=inline'
 
-" Customise the Files command to use rg which respects .gitignore files
+" Customize the Files command to use rg which respects .gitignore files
 command! -bang -nargs=? -complete=dir Files
     \ call fzf#run(fzf#wrap('files', fzf#vim#with_preview({ 'dir': <q-args>, 'sink': 'e', 'source': 'rg --files --hidden' }), <bang>0))
 
 " Add an AllFiles variation that ignores .gitignore files
 command! -bang -nargs=? -complete=dir AllFiles
     \ call fzf#run(fzf#wrap('allfiles', fzf#vim#with_preview({ 'dir': <q-args>, 'sink': 'e', 'source': 'rg --files --hidden --no-ignore' }), <bang>0))
-
-" nnoremap <leader> :map <leader>
-" nnoremap <silent> <leader> :redir =>m<CR>:silent map <leader><CR>:redir END<CR>:new<CR>:put! =m<CR>
-nnoremap <leader> :lua require('utils').show_leader_keys()<CR>
 
 nmap <leader>f :Files<cr>
 nmap <leader>F :AllFiles<cr>
