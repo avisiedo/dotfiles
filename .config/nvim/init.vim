@@ -35,13 +35,16 @@ autocmd BufEnter * if tabpagenr('$') == 1 && winnr('$') == 1 && exists('b:NERDTr
 
 " Install plugins using vim-plug
 " Run: nvim -c PlugInstall -c q -c q --headless
-" call plug#begin('~/.vim/plugged')
-" Plug 'morhetz/gruvbox'
+call plug#begin()
+" Colorschema plugins
+" Plug 'tjdevries/colorbuddy.nvim'
+" Plug 'lalitmee/cobalt2.nvim'
+Plug 'morhetz/gruvbox'
 " Plug 'tpope/vim-fugitive'
-" Plug 'preservim/nerdtree'
+Plug 'preservim/nerdtree'
 " Plug 'kien/ctrlp.vim'
 " Plug 'fatih/vim-go', { 'do': ':GoUpdateBinaries' }
-" call plug#end()
+call plug#end()
 
 " Configure vim-go
 let g:go_fmt_command = "goimports"
@@ -50,7 +53,7 @@ let g:go_list_type = "quickfix"
 let g:go_term_enabled = 1
 
 " Set colorscheme
-" colorscheme gruvbox
+colorscheme gruvbox
 
 set hidden
 set signcolumn=yes:2
