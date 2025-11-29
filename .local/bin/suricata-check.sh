@@ -1,7 +1,7 @@
 #!/bin/bash
 
 if which suricata &>/dev/null; then
-	sudo suricata -T -c /etc/suricata/suricata.yaml -v
+	run0 suricata -T -c /etc/suricata/suricata.yaml -v
 else
 	echo "error: suricata is not installed"
 	exit 1
