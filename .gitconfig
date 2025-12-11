@@ -21,7 +21,7 @@
 # Please adapt and uncomment the following lines:
 	name = Alejandro Visiedo
 	email = learning.little.engineer.2025.1@gmail.com
-	signingkey = ~/.ssh/id_ed25519_sk_git_signing.pub
+	signingkey = ~/.ssh/id_ed25519_sk_rk_fedora.pub
 [commit]
 	gpgSign = true
 [tag]
