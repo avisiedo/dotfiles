@@ -5,16 +5,27 @@
 # https://www.youtube.com/watch?v=aolI_Rz0ZqY
 # https://www.youtube.com/watch?v=Md44rcw13k4
 # https://git-scm.com/book/en/v2
+# https://git-scm.com/docs/gittutorial
 #
 # Use ssh key to authorize and signing
 #   https://stackoverflow.com/questions/72844616/how-do-i-sign-git-commits-using-my-existing-ssh-key
+#   https://developers.yubico.com/SSH/Securing_git_with_SSH_and_FIDO2.html
+#
+# Check GitHub fingerprint first time you access at:
+#   https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/githubs-ssh-key-fingerprints
+#
+# Secure your commits by passwordless at:
+#   https://developers.yubico.com/SSH/Securing_git_with_SSH_and_FIDO2.html
+#
 [user]
 # Please adapt and uncomment the following lines:
 	name = Alejandro Visiedo
-	email = avisiedo@redhat.com
-	signingkey = /home/avisiedo/.ssh/id_ed25519.pub
+	email = learning.little.engineer.2025.1@gmail.com
+	signingkey = ~/.ssh/id_ed25519_sk_rk_fedora.pub
 [commit]
-	gpgsign = true
+	gpgSign = true
+[tag]
+	forceSignAnnotated = true
 [apply]
 	whitespace = strip
 [color]
@@ -79,16 +90,20 @@
     sb = show-branch
     mail = send-email --compose
     autobuild = push autobuild +HEAD:master
-    w = status -b -s -uno
-    sambamr = "!f() { wget https://gitlab.com/samba-team/samba/merge_requests/$1.patch && git am -3 $1.patch;}; f"
-    libsshmr = "!f() { wget https://gitlab.com/libssh/libssh-mirror/merge_requests/$1.patch && git am -3 $1.patch;}; f"
-    cmockamr = "!f() { wget https://gitlab.com/cmocka/cmocka/merge_requests/$1.patch && git am -3 $1.patch;}; f"
+    w = status --branch --short --untracked-files=no
+    wu = status --branch --short --untracked-files=normal
 
 [init]
 	defaultBranch = main
 [credential "https://github.com"]
 	helper = !/usr/bin/gh auth git-credential
 [core]
-	editor = vim
+    # editor = vim
 [gpg]
 	format = ssh
+[http]
+	# proxy = http://localhost:3128
+[pull]
+	rebase = true
+[gpg "ssh"]
+	allowedSignersFile = ~/.ssh/allowed_signers

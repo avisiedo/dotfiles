@@ -1,0 +1,39 @@
+# [separator.left]
+# thick = "\ue0b0"
+# thin = "\ue0b1"
+
+[[left]]
+name = "os"
+color.background = "black"
+color.foreground = "blue"
+
+[[left]]
+name = "virtualenv"
+color.background = "black"
+color.foreground = "blue"
+
+[[left]]
+name = "dir"
+color.background = "blue"
+color.foreground = "black"
+
+[[left]]
+name = "git"
+color.background = "green"
+color.foreground = "black"
+
+[[right]]
+name = "status"
+color.background = "white"
+color.foreground = "black"
+
+[[right]]
+name = "cmdtime"
+color.background = "magenta"
+color.foreground = "black"
+
+[[right]]
+name = "shell"
+color.background = "green"
+color.foreground = "black"
+

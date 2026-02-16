@@ -1,0 +1,17 @@
+input 1452:835:Apple_SPI_Keyboard {
+  xkb_layout es
+  repeat_delay 300
+  repeat_rate 20
+  xkb_capslock disabled
+  xkb_numlock disabled
+}
+
+# https://slar.se/configuring-touchpad-in-sway.html
+input "type:touchpad" {
+  dwt enabled
+  dwtp enabled
+  tap enabled
+  tap_button_map lrm
+  natural_scroll enabled
+  scroll_method two_finger
+}

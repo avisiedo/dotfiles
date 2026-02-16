@@ -1,7 +1,10 @@
 # https://github.com/justjanne/powerline-go
-# Require: powerline
-#   pacman -Sy extras/powerline
-function _update_ps1_powerline_go() {
+# Requires:
+#   rpm based: dnf install powerline-go powerline-font
+#   deb based: apt install powerline-go
+#   macos: brew install powerline-go
+
+function _update_ps1_powerline() {
     # For podman we can check if the context is a container by checking
     # /run/.containerenv
     #
@@ -15,7 +18,7 @@ function _update_ps1_powerline_go() {
     # unmarshal to powerline-go's Segment structs.
     # (default "venv,user,host,ssh,cwd,perms,git,hg,jobs,exit,root")
     local MODULES="direnv,venv,user,host,ssh,cwd,perms,git,jobs,exit,root"
-    PS1="$(powerline-render)"
+    PS1="$(powerline-go -error $? -newline -jobs "$(jobs -p | wc -l)" -modules "${MODULES}" -cwd-max-depth 3 -numeric-exit-codes -theme default)"
 
     # Uncomment the following line to automatically clear errors after showing
     # them once. This not only clears the error for powerline-go, but also for
@@ -25,11 +28,6 @@ function _update_ps1_powerline_go() {
     #set "?"
 }
 
-if tty -s &>/dev/null; then
-    if [ "${TERM}" != "linux" ]; then
-        if which powerline &>/dev/null; then
-            # PROMPT_COMMAND="_update_ps1_powerline_go; ${PROMPT_COMMAND}"
-            [ ! -e "/usr/share/powerline/bindings/shell/powerline.sh" ] || source "/usr/share/powerline/bindings/shell/powerline.sh"
-        fi
-    fi
+if tty -s &>/dev/null && [ "${TERM}" != "linux" ] && [ -f "$(which powerline-go 2>/dev/null)" ]; then
+    PROMPT_COMMAND="_update_ps1_powerline; ${PROMPT_COMMAND}"
 fi

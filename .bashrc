@@ -1,23 +1,28 @@
 # .bashrc
 
+VERBOSE=0
+
+trace_file() {
+    local filename="$1"
+    if tty -s && [ "${VERBOSE}" == "1" ]; then
+        printf "info:processing '%s'\n" "${filename}"
+    fi
+    return 0
+}
+
 # Source global definitions
 if [ -f /etc/bashrc ]; then
     source /etc/bashrc
 fi
 
-# User specific environment
-if ! [[ "$PATH" =~ "$HOME/.local/bin:$HOME/bin:" ]]; then
-    PATH="$HOME/.local/bin:$HOME/bin:$PATH"
-fi
-export PATH
-
 # Uncomment the following line if you don't like systemctl's auto-paging feature:
 # export SYSTEMD_PAGER=
 
-# User specific aliases and functions
+# User specific environment
 if [ -d ~/.profile.d ]; then
     for rc in ~/.profile.d/*.sh; do
         if [ -f "$rc" ]; then
+            trace_file "$rc"
             source "$rc"
         fi
     done

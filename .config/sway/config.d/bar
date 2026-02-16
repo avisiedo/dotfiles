@@ -1,0 +1,6 @@
+bar {
+    position top
+    status_command ~/.config/sway/status.sh
+    # status_command ~/.config/sway/network_info.sh
+    font pango:DejaVu Sans Mono 10
+}
