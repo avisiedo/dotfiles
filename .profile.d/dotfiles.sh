@@ -1,5 +1,6 @@
 dotfiles() {
-	/usr/bin/git --git-dir="$HOME/.dotfiles/" --work-tree="$HOME" "$@"
+	which git &>/dev/null \
+		&& git --git-dir="$HOME/.dotfiles/" --work-tree="$HOME" "$@"
 }
 export -f dotfiles &>/dev/null
 
