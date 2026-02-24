@@ -13,5 +13,6 @@ if [ -e ~/go ]; then
     PATH="$PATH:$HOME/go/bin"
   fi
   export PATH
-  export GOSUMDB="sum.golang.org"
+  # Ensure GOSUMDB has a value to check the imported packages
+  export GOSUMDB="${GOSUMDB:-sum.golang.org}"
 fi
