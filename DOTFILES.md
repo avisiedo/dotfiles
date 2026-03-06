@@ -4,14 +4,20 @@ See: https://wiki.archlinux.org/title/Dotfiles
 
 ## Package dependencies
 
-**For GO development**
+### Linux Workstation
 
 ```sh
 sudo dnf install -y \
-  nvim silver rg fzf \
+  nvim powerline-go rg fzf \
   vim-go vim-golint vim-nerdtree \
   vim-fugitive vim-rhubarb vim-fugitive-gitlab \
   vim-devicons
+```
+
+### macOS Workstation
+
+```sh
+brew install silver
 ```
 
 ## Set up a new one
