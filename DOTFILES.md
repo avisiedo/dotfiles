@@ -17,7 +17,7 @@ sudo dnf install -y \
 ### macOS Workstation
 
 ```sh
-brew install silver
+brew install spaceship
 ```
 
 ## Set up a new one
